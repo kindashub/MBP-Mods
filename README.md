@@ -1,5 +1,7 @@
 # MBP-Mods
 
+**Repository:** [github.com/kindashub/MBP-Mods](https://github.com/kindashub/MBP-Mods)
+
 macOS reinstall stash: **modified apps, scripts, and blueprints** collected in one place. Use this when you wipe or migrate a machine—clone the repo (or copy the folder from backup), then follow each mod’s guide.
 
 ## Layout
