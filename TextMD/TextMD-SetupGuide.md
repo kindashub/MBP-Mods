@@ -2,7 +2,7 @@
 
 Minimal steps to recreate the same TextEdit + `~/TextMD` workflow after reinstalling macOS. **TextEdit** is built in; no extra editor install.
 
-**Where this bundle lives:** In the **MBP-Mods** GitHub repo: **`MBP-Mods/TextMD/`**. In KindasOS (if you use that project): **`KindasOS/MBP-Mods/TextMD/`**. You can keep a copy at **`~/MBP-Mods/TextMD/`** for backups—same files.
+**Where this bundle lives:** In the **MBP-Mods** GitHub repo: **`TextMD/`** (this folder). You can keep a copy at **`~/MBP-Mods/TextMD/`** for backups—same files.
 
 ## What you get
 
@@ -79,18 +79,6 @@ Or: Finder → any `.md` → **Get Info** → **Open with** → TextEdit → **C
 ## 6. Dock
 
 Drag **`~/Applications/TextMD.app`** to the Dock. First run may show a security prompt (right-click → Open once if needed).
-
----
-
-## Alternative: KindasOS repo on disk
-
-If you have the **KindasOS** repository on disk, from the repo root run:
-
-```bash
-./scripts/setup-textedit-default.sh
-```
-
-That applies the same `defaults`, creates `~/TextMD`, installs `~/bin/textedit-new-md` from the repo script, rebuilds `~/Applications/TextMD.app`, and runs `duti` if installed. Still copy **`TextMD.app` from this folder** if you want the exact bundled applet; otherwise the script regenerates it.
 
 ---
 

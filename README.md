@@ -10,10 +10,7 @@ Each **mod** has its own top-level folder (self-contained).
 
 | Folder | Contents |
 |--------|----------|
-| **TextMD** | TextEdit + `~/TextMD` workflow—Dock app, launcher script, `TextMD-SetupGuide.md`. |
+| **TextMD** | TextEdit + `~/TextMD` workflow — Dock app, launcher script, `TextMD-SetupGuide.md`. |
+| **ClearlyMD** | ClearlyMD editor + ClearlyEdit Dock helper — same `~/TextMD` naming; `ClearlyMD-SetupGuide.md`, `install-clearlymd.sh`, `setup-clearlymd.sh`. |
 
 Add new mods as new folders here.
-
-## See also
-
-- KindasOS project (optional): `scripts/setup-textedit-default.sh` can apply the same TextEdit defaults when this repo is checked out next to it.
