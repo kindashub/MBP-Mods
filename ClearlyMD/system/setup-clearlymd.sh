@@ -105,17 +105,10 @@ else
 fi
 
 DOCK_APP="${MOD_DIR}/ClearlyEdit.app"
-if [[ "$(uname -s)" == Darwin ]] && command -v osacompile >/dev/null 2>&1; then
+BUILD_EDIT="${SCRIPT_DIR}/build-clearlyedit-app.sh"
+if [[ "$(uname -s)" == Darwin && -x "$BUILD_EDIT" ]]; then
   echo "==> Dock helper (ClearlyEdit): ${DOCK_APP}"
-  TMP="$(mktemp -t clearlyedit)"
-  cat > "$TMP" <<'APPLESCRIPT'
-on run
-	set p to POSIX path of (path to home folder) & "MBP-Mods/ClearlyMD/system/clearlyedit"
-	do shell script "/bin/bash " & quoted form of p
-end run
-APPLESCRIPT
-  osacompile -o "$DOCK_APP" "$TMP"
-  rm -f "$TMP"
+  bash "$BUILD_EDIT"
 fi
 
 echo ""

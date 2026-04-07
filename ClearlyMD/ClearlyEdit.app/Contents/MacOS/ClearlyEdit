@@ -1,0 +1,8 @@
+#!/bin/bash
+# ClearlyEdit.app entry — Dock/Finder; avoid AppleScript "do shell script" edge cases.
+set -euo pipefail
+if [[ -z "${HOME:-}" ]]; then
+  HOME="$(/usr/bin/dscl . -read "/Users/$(/usr/bin/id -un)" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{print $2}')"
+  export HOME
+fi
+exec "${HOME}/MBP-Mods/ClearlyMD/system/clearlyedit"

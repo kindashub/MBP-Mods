@@ -76,12 +76,14 @@ duti -s com.clearlymd.editor net.daringfireball.markdown all
 
 ## 5. Rebuild ClearlyEdit.app
 
+The Dock helper is **not** AppleScript anymore: **`ClearlyEdit.app`** has a **bash** main executable that runs **`system/clearlyedit`** (avoids silent failures from **`do shell script`** in Dock applets).
+
 ```bash
 cd ~/MBP-Mods/ClearlyMD/system
 ./build-clearlyedit-app.sh
 ```
 
-Output: **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`**.
+Output: **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** (ad-hoc **`codesign`** + Launch Services registration).
 
 ---
 
@@ -112,7 +114,7 @@ Your **ClearlyMD.app** is probably an **old build** (bundle ID was renamed to **
 
 ### ClearlyEdit does nothing when clicked
 
-1. Rebuild the Dock applet (runs **`clearlyedit`** via **`/bin/bash`**):
+1. Rebuild **`ClearlyEdit.app`** (bash stub → **`clearlyedit`**):
    ```bash
    cd ~/MBP-Mods/ClearlyMD/system
    ./build-clearlyedit-app.sh
@@ -121,7 +123,7 @@ Your **ClearlyMD.app** is probably an **old build** (bundle ID was renamed to **
    ```bash
    cp clearlyedit-new-md.sh clearlyedit && chmod +x clearlyedit
    ```
-3. Remove the old Dock icon and drag **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** back to the Dock.
+3. **`killall Dock`** (or remove the Dock icon and drag **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** back) so the Dock does not keep a stale handle to an old build.
 
 ---
 
