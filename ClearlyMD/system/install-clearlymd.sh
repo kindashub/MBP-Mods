@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Install Clearly.app as ~/MBP-Mods/ClearlyMD/ClearlyMD.app (default) or /Applications (sudo).
+# Download Clearly.app from GitHub Releases → ~/MBP-Mods/ClearlyMD/ClearlyMD.app
+#
+# Canonical zip: kindashub/KindasOS Releases tag clearlymd-latest (CI from external/clearly).
+# Override: CLEARLYMD_RELEASE_REPO / CLEARLYMD_RELEASE_TAG.
 
 set -euo pipefail
 
-REPO="${CLEARLYMD_RELEASE_REPO:-kindashub/MBP-Mods}"
+REPO="${CLEARLYMD_RELEASE_REPO:-kindashub/KindasOS}"
 TAG="${CLEARLYMD_RELEASE_TAG:-clearlymd-latest}"
 ZIP_NAME="Clearly-Debug-unsigned.zip"
 URL="https://github.com/${REPO}/releases/download/${TAG}/${ZIP_NAME}"
@@ -14,8 +17,9 @@ while [[ $# -gt 0 ]]; do
     --system) INSTALL_SYSTEM=true; shift ;;
     -h|--help)
       echo "Usage: $0 [--system]"
-      echo "  (default) Install to ~/MBP-Mods/ClearlyMD/ClearlyMD.app"
-      echo "  --system  Install to /Applications/ClearlyMD.app (sudo)"
+      echo "  Default: install to ~/MBP-Mods/ClearlyMD/ClearlyMD.app"
+      echo "  --system: /Applications/ClearlyMD.app (sudo)"
+      echo "  Zip: ${URL}"
       exit 0
       ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -26,13 +30,15 @@ TMP="$(mktemp -d)"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
-echo "==> Downloading ${ZIP_NAME} from ${REPO}@${TAG}"
+echo "==> Downloading ${ZIP_NAME} (${REPO}@${TAG})"
 if command -v gh >/dev/null 2>&1 && gh auth status &>/dev/null; then
   gh release download "$TAG" -R "$REPO" -p "$ZIP_NAME" -D "$TMP" --clobber 2>/dev/null || true
 fi
 if [[ ! -f "$TMP/$ZIP_NAME" ]]; then
   if ! curl -fsSL -o "$TMP/$ZIP_NAME" "$URL"; then
-    echo "error: could not download ${ZIP_NAME} from ${URL}" >&2
+    echo "error: could not download ${ZIP_NAME}" >&2
+    echo "  URL: ${URL}" >&2
+    echo "  hint: gh auth login; or ensure Release ${TAG} exists on ${REPO}" >&2
     exit 1
   fi
 fi
@@ -48,6 +54,7 @@ test -d "$TMP/Clearly.app" || {
 if [[ "$INSTALL_SYSTEM" == true ]]; then
   echo "==> Installing to /Applications/ClearlyMD.app (sudo)"
   sudo ditto "$TMP/Clearly.app" /Applications/ClearlyMD.app
+  TARGET="/Applications/ClearlyMD.app"
 else
   TARGET_DIR="${HOME}/MBP-Mods/ClearlyMD"
   mkdir -p "$TARGET_DIR"
@@ -58,4 +65,12 @@ else
   xattr -dr com.apple.quarantine "$TARGET" 2>/dev/null || true
 fi
 
+EXE="$(defaults read "$TARGET/Contents/Info" CFBundleExecutable 2>/dev/null || echo "")"
+BID="$(defaults read "$TARGET/Contents/Info" CFBundleIdentifier 2>/dev/null || echo "")"
+if [[ "$EXE" != "Clearly" ]]; then
+  echo "error: ClearlyMD.app main executable must be Clearly (found: ${EXE:-missing})" >&2
+  echo "  Remove wrong bundles (Script Editor applets) and reinstall." >&2
+  exit 1
+fi
+echo "==> Verified: CFBundleExecutable=Clearly, CFBundleIdentifier=${BID}"
 echo "==> Done."

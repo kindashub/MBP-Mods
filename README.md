@@ -2,7 +2,7 @@
 
 **Repository:** [github.com/kindashub/MBP-Mods](https://github.com/kindashub/MBP-Mods)
 
-macOS mods: **TextMD** (TextEdit + `~/TextMD`) and **ClearlyMD** (editor + ClearlyEdit). All setup instructions are in each mod’s **`system/`** folder.
+macOS mods: **TextMD** (TextEdit + `~/TextMD`) and **ClearlyMD** (editor + ClearlyEdit). **ClearlyMD overview:** [`ClearlyMD/README.md`](ClearlyMD/README.md). Scripts live in each mod’s **`system/`** folder.
 
 ---
 
@@ -25,7 +25,9 @@ Each mod uses a **`system/`** subfolder for scripts, guides, and the **`clearlye
         ├── clearlyedit-new-md.sh
         ├── install-clearlymd.sh
         ├── setup-clearlymd.sh
-        └── build-clearlyedit-app.sh
+        ├── verify-clearlymd-app.sh
+        ├── build-clearlyedit-app.sh
+        └── clearlyedit-launcher.c
 ```
 
 Repo root **`README.md`** / **`apply-to-home.sh`** exist for GitHub only — they are not required under **`~/MBP-Mods/`** itself.

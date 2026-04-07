@@ -1,33 +1,28 @@
 #!/usr/bin/env bash
-# Build ClearlyEdit.app next to this mod folder — Mach-O launcher + icon (Dock-friendly).
+# Build ~/MBP-Mods/ClearlyMD/ClearlyEdit.app — Mach-O launcher + icon (Dock-friendly).
 
 set -euo pipefail
 
-if [[ "$(uname -s)" != Darwin ]]; then
-  echo "error: run on macOS" >&2
-  exit 1
-fi
-
-if ! command -v clang >/dev/null 2>&1; then
-  echo "error: clang not found (install Xcode Command Line Tools: xcode-select --install)" >&2
-  exit 1
-fi
-
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MOD_DIR="$(cd "${HERE}/.." && pwd)"
-SYS_DIR="${HERE}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MOD_DIR="${HOME}/MBP-Mods/ClearlyMD"
+SYS_DIR="${MOD_DIR}/system"
 DOCK_APP="${MOD_DIR}/ClearlyEdit.app"
 BIN_LAUNCHER="${SYS_DIR}/clearlyedit"
-LAUNCHER_C="${HERE}/clearlyedit-launcher.c"
+LAUNCHER_C="${SCRIPT_DIR}/clearlyedit-launcher.c"
 
 if [[ ! -x "$BIN_LAUNCHER" ]]; then
   echo "error: missing executable ${BIN_LAUNCHER}" >&2
-  echo "Run setup-clearlymd.sh first (installs launcher from clearlyedit-new-md.sh)." >&2
+  echo "Run: ./scripts/setup-clearlymd.sh (installs launcher from clearlyedit-new-md.sh)" >&2
   exit 1
 fi
 
 if [[ ! -f "$LAUNCHER_C" ]]; then
   echo "error: missing ${LAUNCHER_C}" >&2
+  exit 1
+fi
+
+if ! command -v clang >/dev/null 2>&1; then
+  echo "error: clang not found (install Xcode Command Line Tools)" >&2
   exit 1
 fi
 
@@ -40,6 +35,7 @@ clang -O2 -Wall -Wextra \
   -o "${DOCK_APP}/Contents/MacOS/ClearlyEdit" \
   "$LAUNCHER_C"
 
+# Icon: ClearlyMD applet, else TextEdit, else generic (avoids blank Dock tile)
 ICON_OUT="${DOCK_APP}/Contents/Resources/ClearlyEdit.icns"
 if [[ -f "${MOD_DIR}/ClearlyMD.app/Contents/Resources/applet.icns" ]]; then
   cp "${MOD_DIR}/ClearlyMD.app/Contents/Resources/applet.icns" "$ICON_OUT"

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# ClearlyMD: launcher, editor from Releases, ClearlyEdit Dock app, optional duti.
-# Run from: ~/MBP-Mods/ClearlyMD/system/setup-clearlymd.sh
-# Root of mod folder only contains *.app — scripts live in system/
+# ClearlyMD setup: launcher in MBP-Mods/ClearlyMD/system/, editor from Releases, Dock app, optional duti.
+# Mod root ~/MBP-Mods/ClearlyMD/ contains only *.app — scripts live in system/
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MOD_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 LAUNCHER_SRC="${SCRIPT_DIR}/clearlyedit-new-md.sh"
-INSTALL_APP="${SCRIPT_DIR}/install-clearlymd.sh"
+INSTALL_FORK="${SCRIPT_DIR}/install-clearlymd.sh"
 MBP_MODS="${HOME}/MBP-Mods"
-BIN_LAUNCHER="${SCRIPT_DIR}/clearlyedit"
+MOD_DIR="${MBP_MODS}/ClearlyMD"
+SYS_DIR="${MOD_DIR}/system"
+BIN_LAUNCHER="${SYS_DIR}/clearlyedit"
 DEFAULT_DIR="${TEXTEDIT_DEFAULT_DIR:-$HOME/TextMD}"
 
 if [[ ! -f "$LAUNCHER_SRC" ]]; then
@@ -18,15 +18,13 @@ if [[ ! -f "$LAUNCHER_SRC" ]]; then
   exit 1
 fi
 
-echo "==> ClearlyMD mod: ${MOD_DIR} (apps here, scripts in system/)"
-mkdir -p "${SCRIPT_DIR}" "$MOD_DIR" "$DEFAULT_DIR"
+echo "==> ClearlyMD: ${MOD_DIR} (apps at root, scripts in system/)"
+mkdir -p "$SYS_DIR" "$DEFAULT_DIR"
 
-# Migrate pre-system layout
 if [[ -f "${MOD_DIR}/clearlyedit" && ! -f "${BIN_LAUNCHER}" ]]; then
   mv "${MOD_DIR}/clearlyedit" "${BIN_LAUNCHER}"
   echo "==> Moved clearlyedit → system/"
 fi
-
 rm -f "${MBP_MODS}/bin/clearlyedit" 2>/dev/null || true
 
 if [[ -d "${MBP_MODS}/ClearlyMD.app" && ! -d "${MOD_DIR}/ClearlyMD.app" ]]; then
@@ -40,27 +38,38 @@ echo "==> Install launcher: ${BIN_LAUNCHER}"
 cp "$LAUNCHER_SRC" "$BIN_LAUNCHER"
 chmod +x "$BIN_LAUNCHER"
 
-if [[ -f "$INSTALL_APP" ]]; then
-  echo "==> ClearlyMD.app ← GitHub Release"
+if [[ -f "$INSTALL_FORK" ]]; then
+  echo "==> ClearlyMD.app ← Release zip (${CLEARLYMD_RELEASE_REPO:-kindashub/KindasOS})"
   set +e
-  bash "$INSTALL_APP"
+  CLEARLYMD_RELEASE_REPO="${CLEARLYMD_RELEASE_REPO:-kindashub/KindasOS}" bash "$INSTALL_FORK"
   fork_rc=$?
   set -e
   if [[ $fork_rc -ne 0 ]]; then
-    echo "    (ClearlyMD.app not installed — check Release clearlymd-latest on kindashub/MBP-Mods.)"
+    echo "    (install failed — check Release clearlymd-latest on KindasOS, or run ./scripts/install-clearlymd.sh)"
   fi
 else
   echo "==> (install-clearlymd.sh not found; skipped)"
 fi
 
+FORK_APP="${MOD_DIR}/ClearlyMD.app"
+FORK_BUNDLE="${CLEARLYMD_BUNDLE_ID:-}"
+if [[ -z "$FORK_BUNDLE" && -d "$FORK_APP" ]]; then
+  FORK_BUNDLE="$(defaults read "$FORK_APP/Contents/Info" CFBundleIdentifier 2>/dev/null || true)"
+fi
+if [[ -z "$FORK_BUNDLE" ]]; then
+  FORK_BUNDLE="com.clearlymd.editor"
+fi
+
 rm -rf "${HOME}/Applications/ClearlyMD.app" "${HOME}/Applications/Clearly-KindasOS.app" 2>/dev/null || true
 
-FORK_BUNDLE="${CLEARLYMD_BUNDLE_ID:-com.clearlymd.editor}"
-FORK_APP="${MOD_DIR}/ClearlyMD.app"
+if [[ ":${PATH}:" != *":${SYS_DIR}:"* ]]; then
+  echo ""
+  echo "Tip: add ${SYS_DIR} to PATH or run ${BIN_LAUNCHER} by full path."
+fi
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 if [[ -x "$LSREGISTER" ]]; then
-  echo "==> Drop stale Markdown app registrations"
+  echo "==> Drop stale Markdown app registrations (Finder .md icons)"
   shopt -s nullglob
   for stale in \
     "/Applications/MacDown.app" \
@@ -79,7 +88,7 @@ if [[ -d "$FORK_APP" && -x "$LSREGISTER" ]]; then
 fi
 
 if [[ -d "$FORK_APP" ]]; then
-  echo "==> Clear Icon Services cache (may prompt for password)"
+  echo "==> Clear system Icon Services cache (Terminal password or macOS dialog)"
   if sudo -n rm -rf /Library/Caches/com.apple.iconservices.store 2>/dev/null; then
     true
   elif command -v osascript >/dev/null 2>&1; then
@@ -116,4 +125,5 @@ echo "-------------------------------------------------------------------"
 echo "Editor:    ${FORK_APP}"
 echo "New note:  ${BIN_LAUNCHER}"
 echo "Dock:      ${DOCK_APP}"
+echo "TextMD:    ~/MBP-Mods/TextMD/TextMD.app + ~/bin/textedit-new-md"
 echo "-------------------------------------------------------------------"

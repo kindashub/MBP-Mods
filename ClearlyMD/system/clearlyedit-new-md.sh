@@ -1,6 +1,11 @@
 #!/bin/bash
-# ClearlyEdit: new .md in ~/TextMD, open in ClearlyMD.app (inside ~/MBP-Mods/ClearlyMD/).
-# Use /bin/bash (not env) so AppleScript "do shell script" and Dock applets invoke reliably.
+# ClearlyEdit: create a new Markdown file in ~/TextMD (or TEXTEDIT_DEFAULT_DIR) and open in ClearlyMD.
+# Use /bin/bash so Dock AppleScript "do shell script" invokes this script reliably.
+#
+# Environment:
+#   TEXTEDIT_DEFAULT_DIR — folder for new files (default: $HOME/TextMD)
+#   TEXTEDIT_PREFIX      — first segment (default: TX)
+#   CLEARLYMD_APP        — override path to ClearlyMD.app (optional)
 
 set -euo pipefail
 
@@ -16,5 +21,5 @@ APP="${CLEARLYMD_APP:-$HOME/MBP-Mods/ClearlyMD/ClearlyMD.app}"
 if [[ -d "$APP" ]]; then
   open -a "$APP" "$FILENAME"
 else
-  open -b com.clearlymd.editor "$FILENAME"
+  open -b com.clearlymd.editor "$FILENAME" 2>/dev/null || open -b org.kindashub.clearly "$FILENAME"
 fi

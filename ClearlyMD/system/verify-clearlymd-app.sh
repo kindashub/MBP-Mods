@@ -1,5 +1,5 @@
 #!/bin/bash
-# Print ClearlyMD.app bundle ID; exit 1 if old org.kindashub.* build (reinstall required).
+# Sanity-check ClearlyMD.app: Swift editor (Clearly), not a Script Editor applet.
 
 set -euo pipefail
 
@@ -10,19 +10,33 @@ if [[ ! -d "$APP" ]]; then
   exit 1
 fi
 
-BID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null || defaults read "$APP/Contents/Info" CFBundleIdentifier 2>/dev/null || echo "")"
+EXE="$(defaults read "$APP/Contents/Info" CFBundleExecutable 2>/dev/null || echo "")"
+BID="$(defaults read "$APP/Contents/Info" CFBundleIdentifier 2>/dev/null || echo "")"
+
 if [[ -z "$BID" ]]; then
-  echo "error: could not read CFBundleIdentifier from ${APP}/Contents/Info.plist" >&2
+  echo "error: could not read CFBundleIdentifier" >&2
   exit 2
 fi
+
+echo "ClearlyMD.app CFBundleExecutable: ${EXE:-?}"
 echo "ClearlyMD.app CFBundleIdentifier: ${BID}"
 
-if [[ "$BID" == "org.kindashub.clearly" ]] || [[ "$BID" == org.kindashub.* ]]; then
+if [[ "$EXE" == "applet" ]] || [[ -z "$EXE" ]]; then
   echo ""
-  echo "This app uses the OLD bundle ID. Delete it and reinstall:"
-  echo "  rm -rf \"$APP\""
-  echo "  ./scripts/install-clearlymd.sh"
+  echo "Wrong bundle: this folder is a Script Editor applet or incomplete, not ClearlyMD."
+  echo "  rm -rf \"$APP\" && ./scripts/install-clearlymd.sh"
   exit 1
+fi
+
+if [[ "$EXE" != "Clearly" ]]; then
+  echo ""
+  echo "error: expected main executable 'Clearly', got '${EXE}'" >&2
+  exit 1
+fi
+
+if [[ "$BID" == org.kindashub.* ]]; then
+  echo ""
+  echo "note: legacy bundle ID (org.kindashub.*). Run ./scripts/install-clearlymd.sh after the next ClearlyMD CI build for com.clearlymd.editor."
 fi
 
 exit 0
