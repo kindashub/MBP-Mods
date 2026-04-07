@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # ClearlyEdit: new .md in ~/TextMD, open in ClearlyMD.app (inside ~/MBP-Mods/ClearlyMD/).
+# Use /bin/bash (not env) so AppleScript "do shell script" and Dock applets invoke reliably.
 
 set -euo pipefail
 

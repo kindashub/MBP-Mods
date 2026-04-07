@@ -97,4 +97,32 @@ Output: **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`**.
 
 ---
 
+## Troubleshooting
+
+### Error: `org.kindashub.clearly` or `LSCopyApplicationURLsForBundleIdentifier`
+
+Your **ClearlyMD.app** is probably an **old build** (bundle ID was renamed to **`com.clearlymd.editor`**). macOS cannot open it correctly.
+
+1. Check:
+   ```bash
+   ~/MBP-Mods/ClearlyMD/system/verify-clearlymd-app.sh
+   ```
+2. Remove the old app and reinstall from **[Releases](https://github.com/kindashub/MBP-Mods/releases)** (`clearlymd-latest` → **`Clearly-Debug-unsigned.zip`**) or run **`./install-clearlymd.sh`** here.
+3. Run **`./setup-clearlymd.sh`** again (registers Launch Services + `duti`).
+
+### ClearlyEdit does nothing when clicked
+
+1. Rebuild the Dock applet (runs **`clearlyedit`** via **`/bin/bash`**):
+   ```bash
+   cd ~/MBP-Mods/ClearlyMD/system
+   ./build-clearlyedit-app.sh
+   ```
+2. Ensure **`clearlyedit`** exists and is executable:
+   ```bash
+   cp clearlyedit-new-md.sh clearlyedit && chmod +x clearlyedit
+   ```
+3. Remove the old Dock icon and drag **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** back to the Dock.
+
+---
+
 *Bundle IDs: **`com.clearlymd.editor`**, **`com.clearlymd.editor.quicklook`**.*

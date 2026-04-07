@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ClearlyEdit.app next to this mod folder (sibling of system/). Applet runs system/clearlyedit.
+# Build ClearlyEdit.app next to this mod folder (sibling of system/). Runs clearlyedit via /bin/bash (reliable from AppleScript).
 
 set -euo pipefail
 
@@ -17,8 +17,8 @@ trap cleanup EXIT
 
 cat > "$TMP" <<'APPLESCRIPT'
 on run
-	set h to POSIX path of (path to home folder)
-	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/system/clearlyedit")
+	set p to POSIX path of (path to home folder) & "MBP-Mods/ClearlyMD/system/clearlyedit"
+	do shell script "/bin/bash " & quoted form of p
 end run
 APPLESCRIPT
 
