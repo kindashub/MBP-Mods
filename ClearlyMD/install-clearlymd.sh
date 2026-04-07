@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# Download ClearlyMD.app from this repo’s GitHub Releases and install as ~/MBP-Mods/ClearlyMD.app.
-#
-# Default: ~/MBP-Mods/ClearlyMD.app (no sudo). Optional: --system → /Applications/ClearlyMD.app (sudo).
-#
-# Releases: tag clearlymd-latest, asset Clearly-Debug-unsigned.zip (contains Clearly.app).
-# Override: CLEARLYMD_RELEASE_REPO / CLEARLYMD_RELEASE_TAG.
+# Install Clearly.app as ~/MBP-Mods/ClearlyMD/ClearlyMD.app (default) or /Applications (sudo).
 
 set -euo pipefail
 
@@ -19,8 +14,8 @@ while [[ $# -gt 0 ]]; do
     --system) INSTALL_SYSTEM=true; shift ;;
     -h|--help)
       echo "Usage: $0 [--system]"
-      echo "  (default) Install to ~/MBP-Mods/ClearlyMD.app"
-      echo "  --system  Install to /Applications/ClearlyMD.app (requires sudo)"
+      echo "  (default) Install to ~/MBP-Mods/ClearlyMD/ClearlyMD.app"
+      echo "  --system  Install to /Applications/ClearlyMD.app (sudo)"
       exit 0
       ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -38,7 +33,6 @@ fi
 if [[ ! -f "$TMP/$ZIP_NAME" ]]; then
   if ! curl -fsSL -o "$TMP/$ZIP_NAME" "$URL"; then
     echo "error: could not download ${ZIP_NAME} from ${URL}" >&2
-    echo "hint: ensure a Release ${TAG} exists with that asset, or: gh auth login" >&2
     exit 1
   fi
 fi
@@ -55,9 +49,9 @@ if [[ "$INSTALL_SYSTEM" == true ]]; then
   echo "==> Installing to /Applications/ClearlyMD.app (sudo)"
   sudo ditto "$TMP/Clearly.app" /Applications/ClearlyMD.app
 else
-  TARGET_ROOT="${HOME}/MBP-Mods"
-  mkdir -p "$TARGET_ROOT"
-  TARGET="${TARGET_ROOT}/ClearlyMD.app"
+  TARGET_DIR="${HOME}/MBP-Mods/ClearlyMD"
+  mkdir -p "$TARGET_DIR"
+  TARGET="${TARGET_DIR}/ClearlyMD.app"
   echo "==> Installing to ${TARGET}"
   rm -rf "$TARGET"
   ditto "$TMP/Clearly.app" "$TARGET"

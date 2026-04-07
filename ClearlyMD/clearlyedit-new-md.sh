@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# ClearlyEdit: create a new Markdown file in ~/TextMD (or TEXTEDIT_DEFAULT_DIR) and open it in ClearlyMD.
-#
-# Environment:
-#   TEXTEDIT_DEFAULT_DIR — folder for new files (default: $HOME/TextMD)
-#   TEXTEDIT_PREFIX      — first segment (default: TX)
-#   CLEARLYMD_APP        — override path to ClearlyMD.app (optional)
+# ClearlyEdit: new .md in ~/TextMD, open in ClearlyMD.app (inside ~/MBP-Mods/ClearlyMD/).
 
 set -euo pipefail
 
@@ -16,7 +11,7 @@ WDAY="$(LC_ALL=C date +%a | tr '[:lower:]' '[:upper:]')"
 FILENAME="${FOLDER}/${STEM}-${WDAY}$(date +%Y%m%d)-$(date +%H%M%S).md"
 touch "$FILENAME"
 
-APP="${CLEARLYMD_APP:-$HOME/MBP-Mods/ClearlyMD.app}"
+APP="${CLEARLYMD_APP:-$HOME/MBP-Mods/ClearlyMD/ClearlyMD.app}"
 if [[ -d "$APP" ]]; then
   open -a "$APP" "$FILENAME"
 else

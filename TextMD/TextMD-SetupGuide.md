@@ -1,37 +1,44 @@
 # TextMD — Setup guide (clean macOS install)
 
-Minimal steps to recreate the same TextEdit + `~/TextMD` workflow after reinstalling macOS. **TextEdit** is built in; no extra editor install.
+Minimal steps to recreate the TextEdit + `~/TextMD` workflow after reinstalling macOS. **TextEdit** is built in; no extra editor install.
 
-**Where this bundle lives:** In the **MBP-Mods** GitHub repo: **`TextMD/`** (this folder). You can keep a copy at **`~/MBP-Mods/TextMD/`** for backups—same files.
+**This bundle** lives in **`TextMD/`** in [MBP-Mods](https://github.com/kindashub/MBP-Mods). On your Mac, keep the same structure:
+
+```
+~/MBP-Mods/TextMD/
+├── TextMD.app              ← Dock helper (optional)
+├── textedit-new-md.sh
+└── TextMD-SetupGuide.md    ← this file
+```
 
 ## What you get
 
 - New notes as `TX-MON20260406-094222.md` under **`~/TextMD`** (English weekday + date + time).
 - **Cmd+S** saves in place (no folder dialog) because each file is created on disk before opening.
-- **TextEdit** opens to a **blank document** when launched without a file (no file-picker gate).
+- **TextEdit** opens to a **blank document** when launched without a file.
 - **Plain text** defaults; no forced `.txt` suffix.
 - **`.md` opens in TextEdit** if you install **`duti`** (optional).
-- **`TextMD.app`** in Dock: one click → new note.
-
-This folder contains:
+- **`TextMD.app`** in Dock (inside **`~/MBP-Mods/TextMD/`**): one click → new note.
 
 | Item | Role |
 |------|------|
-| `TextMD.app` | Copy to `~/Applications`, add to Dock. |
-| `textedit-new-md.sh` | Copy to `~/bin/textedit-new-md`, executable. |
+| `TextMD.app` | Lives in **`~/MBP-Mods/TextMD/`** — add to Dock from there. |
+| `textedit-new-md.sh` | Copy to **`~/bin/textedit-new-md`**, `chmod +x` (or run by full path). |
 
 ---
 
-## 1. Copy files into your home folder
+## 1. Copy into your home folder
 
 ```bash
-mkdir -p "$HOME/bin" "$HOME/Applications" "$HOME/TextMD"
-cp "/path/to/this/folder/textedit-new-md.sh" "$HOME/bin/textedit-new-md"
+mkdir -p "$HOME/bin" "$HOME/MBP-Mods/TextMD" "$HOME/TextMD"
+cp "/path/to/TextMD/textedit-new-md.sh" "$HOME/bin/textedit-new-md"
 chmod +x "$HOME/bin/textedit-new-md"
-cp -R "/path/to/this/folder/TextMD.app" "$HOME/Applications/"
+cp -R "/path/to/TextMD/TextMD.app" "$HOME/MBP-Mods/TextMD/"
 ```
 
-Replace `/path/to/this/folder` with the real path to this `TextMD` directory (e.g. after cloning **MBP-Mods** or restoring from backup).
+Use the real path to this **`TextMD`** folder (e.g. after `./apply-to-home.sh` from a repo clone).
+
+**Do not** put `TextMD.app` in **`~/Applications`** — keep it under **`~/MBP-Mods/TextMD/`** so it stays next to the scripts, matching this repository.
 
 ---
 
@@ -43,8 +50,6 @@ Add to `~/.zprofile` (or `~/.zshrc`):
 export PATH="$HOME/bin:$PATH"
 ```
 
-Open a new Terminal window (or `source` the file).
-
 ---
 
 ## 3. TextEdit defaults (Terminal)
@@ -55,7 +60,7 @@ defaults write com.apple.TextEdit RichText -bool false
 defaults write com.apple.TextEdit AddExtensionToNewPlainTextFiles -bool false
 ```
 
-Quit TextEdit fully (**Cmd+Q**) if it was open, then continue.
+Quit TextEdit fully (**Cmd+Q**) if it was open.
 
 ---
 
@@ -78,14 +83,14 @@ Or: Finder → any `.md` → **Get Info** → **Open with** → TextEdit → **C
 
 ## 6. Dock
 
-Drag **`~/Applications/TextMD.app`** to the Dock. First run may show a security prompt (right-click → Open once if needed).
+Drag **`~/MBP-Mods/TextMD/TextMD.app`** to the Dock. First run may require **right-click → Open** once.
 
 ---
 
 ## Open the notes folder from TextEdit
 
-**Cmd-click** (or right-click) the **filename in the title bar** → choose the **`TextMD`** folder in the path menu. Or pin **`~/TextMD`** in Finder’s sidebar / Dock.
+**Cmd-click** (or right-click) the **filename in the title bar** → choose **`TextMD`** in the path menu. Or pin **`~/TextMD`** in Finder’s sidebar / Dock.
 
 ---
 
-*Filename pattern: `TX-<WDAY><YYYYMMDD>-<HHMMSS>.md` with `LC_ALL=C` weekday (MON–SUN). Override: `TEXTEDIT_DEFAULT_DIR`, `TEXTEDIT_PREFIX` env vars on `textedit-new-md.sh`.*
+*Filename pattern: `TX-<WDAY><YYYYMMDD>-<HHMMSS>.md` with `LC_ALL=C` weekday (MON–SUN). Override: `TEXTEDIT_DEFAULT_DIR`, `TEXTEDIT_PREFIX` on `textedit-new-md.sh`.*

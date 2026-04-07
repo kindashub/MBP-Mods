@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# ClearlyMD: install ClearlyEdit launcher, ClearlyMD editor from GitHub Releases, Dock helper, optional duti for .md.
-# Does not change TextEdit or the TextMD mod.
-#
-# Outputs live under ~/MBP-Mods/ (not ~/Applications).
+# ClearlyMD: launcher, editor from Releases, ClearlyEdit Dock app, optional duti.
+# Everything for this mod lives under ~/MBP-Mods/ClearlyMD/
 
 set -euo pipefail
 
@@ -10,8 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAUNCHER_SRC="${SCRIPT_DIR}/clearlyedit-new-md.sh"
 INSTALL_APP="${SCRIPT_DIR}/install-clearlymd.sh"
 MBP_MODS="${HOME}/MBP-Mods"
-BIN_DIR="${MBP_MODS}/bin"
-BIN_LAUNCHER="${BIN_DIR}/clearlyedit"
+MOD_DIR="${MBP_MODS}/ClearlyMD"
+BIN_LAUNCHER="${MOD_DIR}/clearlyedit"
 DEFAULT_DIR="${TEXTEDIT_DEFAULT_DIR:-$HOME/TextMD}"
 
 if [[ ! -f "$LAUNCHER_SRC" ]]; then
@@ -19,40 +17,45 @@ if [[ ! -f "$LAUNCHER_SRC" ]]; then
   exit 1
 fi
 
-echo "==> ClearlyMD home: ${MBP_MODS}"
-mkdir -p "$MBP_MODS" "$DEFAULT_DIR"
+echo "==> ClearlyMD mod directory: ${MOD_DIR}"
+mkdir -p "$MOD_DIR" "$DEFAULT_DIR"
 
-echo "==> Install ClearlyEdit launcher: ${BIN_LAUNCHER}"
-mkdir -p "$BIN_DIR"
+# Migrate legacy flat layout (older docs used ~/MBP-Mods/ClearlyMD.app at top level)
+if [[ -d "${MBP_MODS}/ClearlyMD.app" && ! -d "${MOD_DIR}/ClearlyMD.app" ]]; then
+  echo "==> Moving legacy ${MBP_MODS}/ClearlyMD.app → ${MOD_DIR}/"
+  mv "${MBP_MODS}/ClearlyMD.app" "${MOD_DIR}/"
+fi
+if [[ -d "${MBP_MODS}/ClearlyEdit.app" && ! -d "${MOD_DIR}/ClearlyEdit.app" ]]; then
+  echo "==> Moving legacy ${MBP_MODS}/ClearlyEdit.app → ${MOD_DIR}/"
+  mv "${MBP_MODS}/ClearlyEdit.app" "${MOD_DIR}/"
+fi
+rm -f "${MBP_MODS}/bin/clearlyedit" 2>/dev/null || true
+
+echo "==> Install launcher: ${BIN_LAUNCHER}"
 cp "$LAUNCHER_SRC" "$BIN_LAUNCHER"
 chmod +x "$BIN_LAUNCHER"
 
 if [[ -f "$INSTALL_APP" ]]; then
-  echo "==> ClearlyMD.app ← GitHub Release (this repo)"
+  echo "==> ClearlyMD.app ← GitHub Release"
   set +e
   bash "$INSTALL_APP"
   fork_rc=$?
   set -e
   if [[ $fork_rc -ne 0 ]]; then
-    echo "    (ClearlyMD.app not installed — add Release ${CLEARLYMD_RELEASE_TAG:-clearlymd-latest} with ${CLEARLYMD_RELEASE_REPO:-kindashub/MBP-Mods} or check network.)"
+    echo "    (ClearlyMD.app not installed — check Release clearlymd-latest on kindashub/MBP-Mods.)"
   fi
 else
   echo "==> (install-clearlymd.sh not found; skipped)"
 fi
 
-rm -rf "${HOME}/Applications/ClearlyMD.app" 2>/dev/null || true
-
-if [[ ":${PATH}:" != *":${BIN_DIR}:"* ]]; then
-  echo ""
-  echo "Tip: add ${BIN_DIR} to PATH (e.g. in ~/.zprofile) or run ${BIN_LAUNCHER} by full path."
-fi
+rm -rf "${HOME}/Applications/ClearlyMD.app" "${HOME}/Applications/Clearly-KindasOS.app" 2>/dev/null || true
 
 FORK_BUNDLE="${CLEARLYMD_BUNDLE_ID:-com.clearlymd.editor}"
-FORK_APP="${MBP_MODS}/ClearlyMD.app"
+FORK_APP="${MOD_DIR}/ClearlyMD.app"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 if [[ -x "$LSREGISTER" ]]; then
-  echo "==> Drop stale Markdown app registrations (Finder .md icons)"
+  echo "==> Drop stale Markdown app registrations"
   shopt -s nullglob
   for stale in \
     "/Applications/MacDown.app" \
@@ -71,7 +74,7 @@ if [[ -d "$FORK_APP" && -x "$LSREGISTER" ]]; then
 fi
 
 if [[ -d "$FORK_APP" ]]; then
-  echo "==> Clear system Icon Services cache (may prompt for password)"
+  echo "==> Clear Icon Services cache (may prompt for password)"
   if sudo -n rm -rf /Library/Caches/com.apple.iconservices.store 2>/dev/null; then
     true
   elif command -v osascript >/dev/null 2>&1; then
@@ -96,14 +99,14 @@ else
   echo "==> (Skip .md default: install ClearlyMD to ${FORK_APP} first.)"
 fi
 
-DOCK_APP="${MBP_MODS}/ClearlyEdit.app"
+DOCK_APP="${MOD_DIR}/ClearlyEdit.app"
 if [[ "$(uname -s)" == Darwin ]] && command -v osacompile >/dev/null 2>&1; then
   echo "==> Dock helper (ClearlyEdit): ${DOCK_APP}"
   TMP="$(mktemp -t clearlyedit)"
   cat > "$TMP" <<APPLESCRIPT
 on run
 	set h to POSIX path of (path to home folder)
-	do shell script quoted form of (h & "MBP-Mods/bin/clearlyedit")
+	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/clearlyedit")
 end run
 APPLESCRIPT
   osacompile -o "$DOCK_APP" "$TMP"

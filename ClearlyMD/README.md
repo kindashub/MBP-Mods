@@ -1,13 +1,13 @@
 # ClearlyMD
 
-Markdown editor workflow for macOS: **ClearlyMD.app** (editor), **ClearlyEdit** Dock helper, shared **`~/TextMD`** notes with the same `TX-…` filenames as **[TextMD](../TextMD/)** (TextEdit).
+Markdown editor + **ClearlyEdit** Dock helper; same **`~/TextMD`** + **`TX-…`** filenames as [TextMD](../TextMD/).
 
 | File | Purpose |
 |------|---------|
-| **[ClearlyMD-SetupGuide.md](ClearlyMD-SetupGuide.md)** | Install and configure. **Start here.** |
-| **`install-clearlymd.sh`** | Download **ClearlyMD.app** from this repo’s **Releases** (`clearlymd-latest` → `Clearly-Debug-unsigned.zip`). |
-| **`setup-clearlymd.sh`** | Full setup: launcher, editor download, Launch Services, optional `duti`, **ClearlyEdit.app** in Dock. |
-| **`clearlyedit-new-md.sh`** | Copy to **`~/MBP-Mods/bin/clearlyedit`**. |
-| **`ClearlyEdit.app`** | Dock helper (or rebuild with **`build-clearlyedit-app.sh`**). |
+| **[ClearlyMD-SetupGuide.md](ClearlyMD-SetupGuide.md)** | **Start here** — paths, install, `duti`. |
+| **`install-clearlymd.sh`** | Puts **ClearlyMD.app** in **`~/MBP-Mods/ClearlyMD/`**. |
+| **`setup-clearlymd.sh`** | Full setup: `clearlyedit`, editor download, Launch Services, Dock app. |
+| **`clearlyedit-new-md.sh`** | Source for the **`clearlyedit`** launcher in the same folder. |
+| **`build-clearlyedit-app.sh`** | Builds **ClearlyEdit.app** here. |
 
-**Editor binary:** not stored in git (large). Publish **`Clearly-Debug-unsigned.zip`** on this repository’s Releases (tag **`clearlymd-latest`**) when you have a build.
+**Runtime:** **`~/MBP-Mods/ClearlyMD/ClearlyMD.app`** and **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** — not under **`~/Applications`**.

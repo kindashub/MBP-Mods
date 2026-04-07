@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Build ClearlyEdit.app (Dock helper) next to this script. Requires macOS (osacompile).
-# The applet runs ~/MBP-Mods/bin/clearlyedit — install the launcher first (see ClearlyMD-SetupGuide.md).
+# Build ClearlyEdit.app in this directory. Applet runs ~/MBP-Mods/ClearlyMD/clearlyedit
 
 set -euo pipefail
 
@@ -18,7 +17,7 @@ trap cleanup EXIT
 cat > "$TMP" <<'APPLESCRIPT'
 on run
 	set h to POSIX path of (path to home folder)
-	do shell script quoted form of (h & "MBP-Mods/bin/clearlyedit")
+	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/clearlyedit")
 end run
 APPLESCRIPT
 
