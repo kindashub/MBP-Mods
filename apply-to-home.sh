@@ -16,8 +16,9 @@ done
 
 mkdir -p "${DEST}"
 echo "==> Syncing TextMD/ and ClearlyMD/ → ${DEST}/"
+echo "    (excludes ClearlyMD/README.md — GitHub-only index; keep *-SetupGuide.md)"
 rsync -a --delete "${ROOT}/TextMD/" "${DEST}/TextMD/"
-rsync -a --delete "${ROOT}/ClearlyMD/" "${DEST}/ClearlyMD/"
+rsync -a --delete --exclude='README.md' "${ROOT}/ClearlyMD/" "${DEST}/ClearlyMD/"
 
 echo "==> Done. Guides: ${DEST}/TextMD/TextMD-SetupGuide.md"
 echo "            ${DEST}/ClearlyMD/ClearlyMD-SetupGuide.md"
