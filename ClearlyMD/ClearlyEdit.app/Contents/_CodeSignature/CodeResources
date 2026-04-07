@@ -3,9 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>files</key>
-	<dict/>
+	<dict>
+		<key>Resources/ClearlyEdit.icns</key>
+		<data>
+		Xza7vo/Xz2WInfi07d4UwVoXOEI=
+		</data>
+	</dict>
 	<key>files2</key>
-	<dict/>
+	<dict>
+		<key>Resources/ClearlyEdit.icns</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			xvQ6CTSJ3G/v/tj0k95twbeRE7B/CndJxOJxQthGZDM=
+			</data>
+		</dict>
+	</dict>
 	<key>rules</key>
 	<dict>
 		<key>^Resources/</key>

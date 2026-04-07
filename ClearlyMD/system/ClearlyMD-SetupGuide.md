@@ -76,7 +76,9 @@ duti -s com.clearlymd.editor net.daringfireball.markdown all
 
 ## 5. Rebuild ClearlyEdit.app
 
-The Dock helper is **not** AppleScript anymore: **`ClearlyEdit.app`** has a **bash** main executable that runs **`system/clearlyedit`** (avoids silent failures from **`do shell script`** in Dock applets).
+**ClearlyEdit.app** uses a tiny **Mach-O** binary (`clearlyedit-launcher.c` → **`clang`**) as **`CFBundleExecutable`**, which **`execl`** **`/bin/bash`** on **`system/clearlyedit`**. That avoids Dock issues with **script-only** bundle executables and restores a normal app **icon** (copied from **ClearlyMD.app**’s **`applet.icns`**, or TextEdit / generic fallback).
+
+Requires **Xcode Command Line Tools** (`clang`). Install: **`xcode-select --install`**.
 
 ```bash
 cd ~/MBP-Mods/ClearlyMD/system
@@ -114,7 +116,7 @@ Your **ClearlyMD.app** is probably an **old build** (bundle ID was renamed to **
 
 ### ClearlyEdit does nothing when clicked
 
-1. Rebuild **`ClearlyEdit.app`** (bash stub → **`clearlyedit`**):
+1. Rebuild **`ClearlyEdit.app`** (Mach-O launcher → **`clearlyedit`**):
    ```bash
    cd ~/MBP-Mods/ClearlyMD/system
    ./build-clearlyedit-app.sh
@@ -124,6 +126,10 @@ Your **ClearlyMD.app** is probably an **old build** (bundle ID was renamed to **
    cp clearlyedit-new-md.sh clearlyedit && chmod +x clearlyedit
    ```
 3. **`killall Dock`** (or remove the Dock icon and drag **`~/MBP-Mods/ClearlyMD/ClearlyEdit.app`** back) so the Dock does not keep a stale handle to an old build.
+
+### ClearlyEdit shows a blank white icon
+
+Rebuild with **`./build-clearlyedit-app.sh`** — it copies **`applet.icns`** from **`ClearlyMD.app`** when present. Install **ClearlyMD.app** first, or the script falls back to TextEdit / generic icons.
 
 ---
 

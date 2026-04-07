@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Build ClearlyEdit.app next to this mod folder (sibling of system/). Uses a bash
-# executable as CFBundleExecutable — more reliable than AppleScript Dock applets.
+# Build ClearlyEdit.app next to this mod folder — Mach-O launcher + icon (Dock-friendly).
 
 set -euo pipefail
 
@@ -9,11 +8,17 @@ if [[ "$(uname -s)" != Darwin ]]; then
   exit 1
 fi
 
+if ! command -v clang >/dev/null 2>&1; then
+  echo "error: clang not found (install Xcode Command Line Tools: xcode-select --install)" >&2
+  exit 1
+fi
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MOD_DIR="$(cd "${HERE}/.." && pwd)"
 SYS_DIR="${HERE}"
 DOCK_APP="${MOD_DIR}/ClearlyEdit.app"
 BIN_LAUNCHER="${SYS_DIR}/clearlyedit"
+LAUNCHER_C="${HERE}/clearlyedit-launcher.c"
 
 if [[ ! -x "$BIN_LAUNCHER" ]]; then
   echo "error: missing executable ${BIN_LAUNCHER}" >&2
@@ -21,21 +26,28 @@ if [[ ! -x "$BIN_LAUNCHER" ]]; then
   exit 1
 fi
 
+if [[ ! -f "$LAUNCHER_C" ]]; then
+  echo "error: missing ${LAUNCHER_C}" >&2
+  exit 1
+fi
+
 echo "==> Building ${DOCK_APP}"
 rm -rf "$DOCK_APP"
-mkdir -p "${DOCK_APP}/Contents/MacOS"
+mkdir -p "${DOCK_APP}/Contents/MacOS" "${DOCK_APP}/Contents/Resources"
 
-cat > "${DOCK_APP}/Contents/MacOS/ClearlyEdit" <<'STUB'
-#!/bin/bash
-# ClearlyEdit.app entry — Dock/Finder; avoid AppleScript "do shell script" edge cases.
-set -euo pipefail
-if [[ -z "${HOME:-}" ]]; then
-  HOME="$(/usr/bin/dscl . -read "/Users/$(/usr/bin/id -un)" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{print $2}')"
-  export HOME
+clang -O2 -Wall -Wextra \
+  -arch arm64 -arch x86_64 \
+  -o "${DOCK_APP}/Contents/MacOS/ClearlyEdit" \
+  "$LAUNCHER_C"
+
+ICON_OUT="${DOCK_APP}/Contents/Resources/ClearlyEdit.icns"
+if [[ -f "${MOD_DIR}/ClearlyMD.app/Contents/Resources/applet.icns" ]]; then
+  cp "${MOD_DIR}/ClearlyMD.app/Contents/Resources/applet.icns" "$ICON_OUT"
+elif [[ -f "/System/Applications/TextEdit.app/Contents/Resources/EditText.icns" ]]; then
+  cp "/System/Applications/TextEdit.app/Contents/Resources/EditText.icns" "$ICON_OUT"
+elif [[ -f "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns" ]]; then
+  cp "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns" "$ICON_OUT"
 fi
-exec "${HOME}/MBP-Mods/ClearlyMD/system/clearlyedit"
-STUB
-chmod +x "${DOCK_APP}/Contents/MacOS/ClearlyEdit"
 
 cat > "${DOCK_APP}/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -46,6 +58,8 @@ cat > "${DOCK_APP}/Contents/Info.plist" <<'PLIST'
 	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>ClearlyEdit</string>
+	<key>CFBundleIconFile</key>
+	<string>ClearlyEdit</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.clearlymd.clearlyedit</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -55,9 +69,9 @@ cat > "${DOCK_APP}/Contents/Info.plist" <<'PLIST'
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>3</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>11.0</string>
 	<key>NSHighResolutionCapable</key>
@@ -75,4 +89,4 @@ if [[ -x "$LSREGISTER" ]]; then
   "$LSREGISTER" -f -R -trusted "$DOCK_APP" 2>/dev/null || true
 fi
 
-echo "==> ClearlyEdit.app ready (bash stub, not AppleScript)."
+echo "==> ClearlyEdit.app ready (Mach-O launcher + icon)."
