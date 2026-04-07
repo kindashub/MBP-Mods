@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ClearlyEdit.app in this directory. Applet runs ~/MBP-Mods/ClearlyMD/clearlyedit
+# Build ClearlyEdit.app next to this mod folder (sibling of system/). Applet runs system/clearlyedit.
 
 set -euo pipefail
 
@@ -9,7 +9,8 @@ if [[ "$(uname -s)" != Darwin ]] || ! command -v osacompile >/dev/null 2>&1; the
 fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUT="${HERE}/ClearlyEdit.app"
+ROOT="$(cd "${HERE}/.." && pwd)"
+OUT="${ROOT}/ClearlyEdit.app"
 TMP="$(mktemp -t clearlyedit)"
 cleanup() { rm -f "$TMP"; }
 trap cleanup EXIT
@@ -17,7 +18,7 @@ trap cleanup EXIT
 cat > "$TMP" <<'APPLESCRIPT'
 on run
 	set h to POSIX path of (path to home folder)
-	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/clearlyedit")
+	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/system/clearlyedit")
 end run
 APPLESCRIPT
 

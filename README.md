@@ -2,57 +2,58 @@
 
 **Repository:** [github.com/kindashub/MBP-Mods](https://github.com/kindashub/MBP-Mods)
 
-macOS host-only bundles: **TextMD** (TextEdit + `~/TextMD`) and **ClearlyMD** (markdown editor + ClearlyEdit). Everything you need to build, install, and restore is documented **here** — not as loose files in your home folder.
+macOS mods: **TextMD** (TextEdit + `~/TextMD`) and **ClearlyMD** (editor + ClearlyEdit). All setup instructions are in each mod’s **`system/`** folder.
 
 ---
 
-## On your Mac: folder layout (matches this repo)
+## On your Mac: only apps at the top of each mod folder
 
-Use **`~/MBP-Mods/`** only as a **container** for two sibling mod folders. **Do not** keep a full git clone of this repo in `~/MBP-Mods` unless you want Git metadata there; preferred workflow is below.
+Each mod uses a **`system/`** subfolder for scripts, guides, and the **`clearlyedit`** launcher — everything you **don’t** double-click in Finder.
 
 ```
 ~/MBP-Mods/
 ├── TextMD/
-│   ├── TextMD.app              ← Dock helper (AppleScript)
-│   ├── textedit-new-md.sh
-│   └── TextMD-SetupGuide.md
+│   ├── TextMD.app
+│   └── system/
+│       ├── TextMD-SetupGuide.md
+│       └── textedit-new-md.sh
 └── ClearlyMD/
-    ├── ClearlyMD.app           ← editor (from Release zip, or build elsewhere)
-    ├── ClearlyEdit.app         ← Dock helper (run build-clearlyedit-app.sh)
-    ├── clearlyedit-new-md.sh   → install as clearlyedit next to apps (see guide)
-    ├── install-clearlymd.sh
-    ├── setup-clearlymd.sh
-    ├── build-clearlyedit-app.sh
-    └── ClearlyMD-SetupGuide.md
+    ├── ClearlyMD.app
+    ├── ClearlyEdit.app
+    └── system/
+        ├── ClearlyMD-SetupGuide.md
+        ├── clearlyedit-new-md.sh
+        ├── install-clearlymd.sh
+        ├── setup-clearlymd.sh
+        └── build-clearlyedit-app.sh
 ```
 
-**No** `README.md` or `CHANGELOG.md` is required under `~/MBP-Mods/` — those exist only **on GitHub**. To populate your Mac without copying repo root files:
+Repo root **`README.md`** / **`apply-to-home.sh`** exist for GitHub only — they are not required under **`~/MBP-Mods/`** itself.
 
 ```bash
-# From a clone of this repository (any path):
 ./apply-to-home.sh
 ```
 
-That rsyncs **only** `TextMD/` and `ClearlyMD/` into `~/MBP-Mods/`. Then open each folder’s `*-SetupGuide.md` and run any one-time scripts.
+Syncs **`TextMD/`** and **`ClearlyMD/`** into **`~/MBP-Mods/`** (excludes **`ClearlyMD/system/README.md`** — GitHub index only).
 
 ---
 
-## Mod guides (source of truth)
+## Guides
 
-| Mod | Guide |
-|-----|--------|
-| TextEdit + `~/TextMD` | [TextMD/TextMD-SetupGuide.md](TextMD/TextMD-SetupGuide.md) |
-| ClearlyMD + ClearlyEdit | [ClearlyMD/ClearlyMD-SetupGuide.md](ClearlyMD/ClearlyMD-SetupGuide.md) |
+| Mod | Start here |
+|-----|----------------|
+| TextMD | [TextMD/system/TextMD-SetupGuide.md](TextMD/system/TextMD-SetupGuide.md) |
+| ClearlyMD | [ClearlyMD/system/ClearlyMD-SetupGuide.md](ClearlyMD/system/ClearlyMD-SetupGuide.md) |
 
 ---
 
 ## ClearlyMD editor binary
 
-The **ClearlyMD.app** bundle is **not** committed (large). It is published as **`Clearly-Debug-unsigned.zip`** on **this repo’s** [Releases](https://github.com/kindashub/MBP-Mods/releases), tag **`clearlymd-latest`**. Unzip → **`Clearly.app`** → install as **`~/MBP-Mods/ClearlyMD/ClearlyMD.app`**. Script: **`ClearlyMD/install-clearlymd.sh`**.
+**ClearlyMD.app** is not committed. Get **`Clearly-Debug-unsigned.zip`** from [Releases](https://github.com/kindashub/MBP-Mods/releases) tag **`clearlymd-latest`**, or run **`ClearlyMD/system/install-clearlymd.sh`**.
 
 ---
 
 ## History
 
-- **2026-04** — ClearlyMD mod added; layout: apps live **inside** `TextMD/` and `ClearlyMD/` folders (not `~/Applications` or flat under `~/MBP-Mods`).
-- **2026-04** — Repository skeleton + TextMD mod.
+- **2026-04** — **`system/`** subfolders: only **`.app`** bundles at mod root.
+- **2026-04** — ClearlyMD mod; apps under **`TextMD/`** / **`ClearlyMD/`** (not `~/Applications`).

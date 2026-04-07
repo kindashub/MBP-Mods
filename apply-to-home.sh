@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copy only the mod folders into ~/MBP-Mods/ (no README/CHANGELOG at home).
+# Copy TextMD/ and ClearlyMD/ into ~/MBP-Mods/ (no repo root files).
 # Run from the root of a clone of github.com/kindashub/MBP-Mods.
 
 set -euo pipefail
@@ -16,10 +16,10 @@ done
 
 mkdir -p "${DEST}"
 echo "==> Syncing TextMD/ and ClearlyMD/ → ${DEST}/"
-echo "    (excludes ClearlyMD/README.md — GitHub-only index; keep *-SetupGuide.md)"
 rsync -a --delete "${ROOT}/TextMD/" "${DEST}/TextMD/"
-rsync -a --delete --exclude='README.md' "${ROOT}/ClearlyMD/" "${DEST}/ClearlyMD/"
+# Exclude GitHub-only index inside ClearlyMD/system/
+rsync -a --delete --exclude='system/README.md' "${ROOT}/ClearlyMD/" "${DEST}/ClearlyMD/"
 
-echo "==> Done. Guides: ${DEST}/TextMD/TextMD-SetupGuide.md"
-echo "            ${DEST}/ClearlyMD/ClearlyMD-SetupGuide.md"
-echo "    (Repo README/CHANGELOG were not copied.)"
+echo "==> Done."
+echo "    TextMD:  ${DEST}/TextMD/system/TextMD-SetupGuide.md"
+echo "    ClearlyMD: ${DEST}/ClearlyMD/system/ClearlyMD-SetupGuide.md"

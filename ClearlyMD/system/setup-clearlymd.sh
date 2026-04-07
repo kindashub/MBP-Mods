@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # ClearlyMD: launcher, editor from Releases, ClearlyEdit Dock app, optional duti.
-# Everything for this mod lives under ~/MBP-Mods/ClearlyMD/
+# Run from: ~/MBP-Mods/ClearlyMD/system/setup-clearlymd.sh
+# Root of mod folder only contains *.app — scripts live in system/
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MOD_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 LAUNCHER_SRC="${SCRIPT_DIR}/clearlyedit-new-md.sh"
 INSTALL_APP="${SCRIPT_DIR}/install-clearlymd.sh"
 MBP_MODS="${HOME}/MBP-Mods"
-MOD_DIR="${MBP_MODS}/ClearlyMD"
-BIN_LAUNCHER="${MOD_DIR}/clearlyedit"
+BIN_LAUNCHER="${SCRIPT_DIR}/clearlyedit"
 DEFAULT_DIR="${TEXTEDIT_DEFAULT_DIR:-$HOME/TextMD}"
 
 if [[ ! -f "$LAUNCHER_SRC" ]]; then
@@ -17,19 +18,23 @@ if [[ ! -f "$LAUNCHER_SRC" ]]; then
   exit 1
 fi
 
-echo "==> ClearlyMD mod directory: ${MOD_DIR}"
-mkdir -p "$MOD_DIR" "$DEFAULT_DIR"
+echo "==> ClearlyMD mod: ${MOD_DIR} (apps here, scripts in system/)"
+mkdir -p "${SCRIPT_DIR}" "$MOD_DIR" "$DEFAULT_DIR"
 
-# Migrate legacy flat layout (older docs used ~/MBP-Mods/ClearlyMD.app at top level)
+# Migrate pre-system layout
+if [[ -f "${MOD_DIR}/clearlyedit" && ! -f "${BIN_LAUNCHER}" ]]; then
+  mv "${MOD_DIR}/clearlyedit" "${BIN_LAUNCHER}"
+  echo "==> Moved clearlyedit → system/"
+fi
+
+rm -f "${MBP_MODS}/bin/clearlyedit" 2>/dev/null || true
+
 if [[ -d "${MBP_MODS}/ClearlyMD.app" && ! -d "${MOD_DIR}/ClearlyMD.app" ]]; then
-  echo "==> Moving legacy ${MBP_MODS}/ClearlyMD.app → ${MOD_DIR}/"
   mv "${MBP_MODS}/ClearlyMD.app" "${MOD_DIR}/"
 fi
 if [[ -d "${MBP_MODS}/ClearlyEdit.app" && ! -d "${MOD_DIR}/ClearlyEdit.app" ]]; then
-  echo "==> Moving legacy ${MBP_MODS}/ClearlyEdit.app → ${MOD_DIR}/"
   mv "${MBP_MODS}/ClearlyEdit.app" "${MOD_DIR}/"
 fi
-rm -f "${MBP_MODS}/bin/clearlyedit" 2>/dev/null || true
 
 echo "==> Install launcher: ${BIN_LAUNCHER}"
 cp "$LAUNCHER_SRC" "$BIN_LAUNCHER"
@@ -106,7 +111,7 @@ if [[ "$(uname -s)" == Darwin ]] && command -v osacompile >/dev/null 2>&1; then
   cat > "$TMP" <<APPLESCRIPT
 on run
 	set h to POSIX path of (path to home folder)
-	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/clearlyedit")
+	do shell script quoted form of (h & "MBP-Mods/ClearlyMD/system/clearlyedit")
 end run
 APPLESCRIPT
   osacompile -o "$DOCK_APP" "$TMP"
