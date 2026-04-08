@@ -59,3 +59,4 @@ Syncs **`TextMD/`** and **`ClearlyMD/`** into **`~/MBP-Mods/`** (excludes **`Cle
 
 - **2026-04** — **`system/`** subfolders: only **`.app`** bundles at mod root.
 - **2026-04** — ClearlyMD mod; apps under **`TextMD/`** / **`ClearlyMD/`** (not `~/Applications`).
+- **2026-04** — **KindasMD** editor + Dock helper: sources under **[KindasMD/](KindasMD/)** (see **[KindasMD/README.md](KindasMD/README.md)**). Tracked baseline for rollback: commit **`9b7db0eb8650fcbbf2ddf23a15f4c6f8686f5c67`** (`git checkout 9b7db0eb8650fcbbf2ddf23a15f4c6f8686f5c67 -- KindasMD KindasMD_Blueprint.md` restores that tree).
