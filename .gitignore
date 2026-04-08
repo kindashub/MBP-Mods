@@ -1,3 +1,7 @@
 .DS_Store
 *.swp
 *~
+.cursor/
+
+# Local ClearlyMD app archives (large binaries; see ClearlyMD/system/archive-clearlymd-legacy.sh)
+ClearlyMD/_archive/

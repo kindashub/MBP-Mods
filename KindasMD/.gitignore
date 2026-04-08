@@ -1,0 +1,10 @@
+# Xcode / SwiftPM (regenerate with xcodegen + xcodebuild)
+src/editor/.derivedData/
+src/editor/build-dd/
+
+# Installed app bundles under KindasMD/ (copy from Debug build)
+/KindasMDEditor.app
+/KindasMD.app
+
+# Optional large vendor snapshot (see README); clone if needed
+_upstream_kindasos/
