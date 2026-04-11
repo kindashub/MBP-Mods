@@ -23,7 +23,13 @@ that reaches the root cause. Every element must earn its place."
 After EVERY session (completion, hard stop, or interruption), you MUST:
 1. Write a handoff note to `handoffs/YYYYMMDD-HHMMSS-sessionN.md` using the template
 2. Commit AND AUTOMATICALLY PUSH all changes — never leave unpushed commits
-3. Give the user a COPYABLE cold-start for the next agent
+3. **PASTE the cold-start message in the CHAT RESPONSE** — the user must be able to copy it directly
+
+**CRITICAL: The cold-start MUST appear in BOTH places:**
+- Inside the handoff file at `handoffs/YYYYMMDD-HHMMSS-sessionN.md`
+- **Pasted directly in the final chat response** so the user can copy it immediately
+
+Never assume writing it to the handoff file is sufficient. The user needs it in chat to paste for the next agent.
 
 The cold-start MUST follow this exact format — every field is required:
 
@@ -108,7 +114,7 @@ implement wrong things, and leave the project in bad state.
 4. Read the active plan in `plans/` for your session's tasks
 5. Build: `bash build.sh` (then Dock-launch `KindasMD.app` to verify)
 6. Do the work, following the plan section for your session exactly
-7. After work: write handoff, commit, push (automatically — do not ask), give user the cold-start
+7. After work: write handoff, commit, push (automatically — do not ask), **PASTE cold-start in chat response**
 
 ---
 
@@ -180,3 +186,4 @@ KindasMD/
 - Do NOT skip the handoff note at session end
 - Do NOT name context files after specific AI products (`CLAUDE.md`, `GPT.md`, etc.)
   — use `AGENTS.md` which works for any agent
+- **Do NOT skip the cold-start in the chat response** — it MUST be pasted in the final message so the user can copy it. Writing it only to the handoff file breaks the pipeline.
