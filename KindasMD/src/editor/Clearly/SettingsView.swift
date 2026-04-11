@@ -1,15 +1,9 @@
 import SwiftUI
 import KeyboardShortcuts
 import ServiceManagement
-#if canImport(Sparkle)
-import Sparkle
-#endif
 
 struct SettingsView: View {
-    #if canImport(Sparkle)
-    let updater: SPUUpdater
-    #endif
-    @AppStorage("editorFontSize") private var fontSize: Double = 16
+    @AppStorage("editorFontSize") private var fontSize: Double = 12
     @AppStorage("themePreference") private var themePreference = "system"
 
     var body: some View {
@@ -82,18 +76,14 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 16) {
-                #if canImport(Sparkle)
-                Button("Check for Updates") {
-                    updater.checkForUpdates()
-                }
-                #endif
-
                 Button("Website") {
-                    NSWorkspace.shared.open(URL(string: "https://clearly.md")!)
+                    guard let url = URL(string: "https://clearly.md") else { return }
+                    NSWorkspace.shared.open(url)
                 }
 
                 Button("GitHub") {
-                    NSWorkspace.shared.open(URL(string: "https://github.com/Shpigford/clearly")!)
+                    guard let url = URL(string: "https://github.com/Shpigford/clearly") else { return }
+                    NSWorkspace.shared.open(url)
                 }
             }
 

@@ -145,7 +145,10 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
             printInfo.orientation = .portrait
             printInfo.isSelectionOnly = false
         } else {
-            printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
+            guard let info = NSPrintInfo.shared.copy() as? NSPrintInfo else {
+                return NSPrintInfo(dictionary: [:])
+            }
+            printInfo = info
         }
 
         printInfo.paperSize = Self.pageSize

@@ -12,9 +12,7 @@ final class ScrollSyncRelay: ObservableObject {
         lock.lock()
         editorLead = v
         lock.unlock()
-        DispatchQueue.main.async { [weak self] in
-            self?.objectWillChange.send()
-        }
+        relayNotifyChanged()
     }
 
     func takeEditorLead() -> Double? {
@@ -30,8 +28,16 @@ final class ScrollSyncRelay: ObservableObject {
         lock.lock()
         previewLead = v
         lock.unlock()
-        DispatchQueue.main.async { [weak self] in
-            self?.objectWillChange.send()
+        relayNotifyChanged()
+    }
+
+    private func relayNotifyChanged() {
+        if Thread.isMainThread {
+            objectWillChange.send()
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
+            }
         }
     }
 
@@ -61,7 +67,9 @@ extension ScrollBridge {
         switch source {
         case .preview:
             setSharedFraction(v, for: id, notify: nil)
-            relays[id]?.ingestPreviewFractionForEditor(v)
+            if !ScrollBridge.callPreviewToEditorScrollHandlerIfRegistered(for: id, fraction: v) {
+                relays[id]?.ingestPreviewFractionForEditor(v)
+            }
         case .align:
             setSharedFraction(v, for: id, notify: .align)
         case .editor:

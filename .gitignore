@@ -5,3 +5,6 @@
 
 # Local ClearlyMD app archives (large binaries; see ClearlyMD/system/archive-clearlymd-legacy.sh)
 ClearlyMD/_archive/
+
+# KindasMD has its own repo
+KindasMD/

@@ -1,7 +1,4 @@
 import SwiftUI
-#if canImport(Sparkle)
-import Sparkle
-#endif
 
 func activateDocumentApp() {
     if NSApp.activationPolicy() != .regular {
@@ -174,30 +171,23 @@ struct KindasMDEditorApp: App {
     @AppStorage("themePreference") private var themePreference = "system"
     private let recentMenuHelper = RecentMenuHelper()
     @State private var scratchpadManager = ScratchpadManager.shared
-    #if canImport(Sparkle)
-    private let updaterController: SPUStandardUpdaterController
-    #endif
 
     init() {
-        Self.migrateKindasStripPrefsIfNeeded()
+        Self.migrateFontSizeIfNeeded()
         BundledFontRegistration.registerBundledFonts()
         DiagnosticLog.trimIfNeeded()
         DiagnosticLog.log("App launched")
-        #if canImport(Sparkle)
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
-        #endif
     }
 
-    /// First launch after split: copy legacy single-strip visibility to `kindasMasterStripVisible` so "strip off" stays both off.
-    private static func migrateKindasStripPrefsIfNeeded() {
+    /// Migrate old 16pt font size to new 12pt default. Removes stored value if it was 16.0.
+    private static func migrateFontSizeIfNeeded() {
         let d = UserDefaults.standard
-        guard d.object(forKey: "kindasMasterStripVisible") == nil else { return }
-        let legacyBox = d.object(forKey: "kindasBlueprintStripVisible") as? Bool ?? true
-        d.set(legacyBox, forKey: "kindasMasterStripVisible")
+        let key = "editorFontSize"
+        guard d.object(forKey: key) != nil else { return }
+        let stored = d.double(forKey: key)
+        if stored == 16.0 {
+            d.removeObject(forKey: key) // Lets the new default (12) take effect
+        }
     }
 
     private var resolvedColorScheme: ColorScheme? {
@@ -213,14 +203,9 @@ struct KindasMDEditorApp: App {
             ContentView(document: file.$document, fileURL: file.fileURL)
                 .preferredColorScheme(resolvedColorScheme)
         }
-        .windowToolbarStyle(.unified(showsTitle: true))
+        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .defaultSize(width: 720, height: 900)
         .commands {
-            #if canImport(Sparkle)
-            CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(updater: updaterController.updater)
-            }
-            #endif
             CommandGroup(after: .importExport) {
                 ExportPDFCommand()
             }
@@ -345,13 +330,8 @@ struct KindasMDEditorApp: App {
         }
 
         Settings {
-            #if canImport(Sparkle)
-            SettingsView(updater: updaterController.updater)
-                .preferredColorScheme(resolvedColorScheme)
-            #else
             SettingsView()
                 .preferredColorScheme(resolvedColorScheme)
-            #endif
         }
 
         MenuBarExtra("Scratchpads", image: "ScratchpadMenuBarIcon") {
@@ -424,7 +404,7 @@ struct ViewModeCommands: View {
 // MARK: - Font Size Commands
 
 struct FontSizeCommands: View {
-    @AppStorage("editorFontSize") private var fontSize: Double = 16
+    @AppStorage("editorFontSize") private var fontSize: Double = 12
 
     var body: some View {
         Button("Increase Font Size") {
@@ -439,33 +419,12 @@ struct FontSizeCommands: View {
     }
 }
 
-// MARK: - Sparkle Check for Updates menu item
-
-#if canImport(Sparkle)
-struct CheckForUpdatesView: View {
-    @ObservedObject private var checkForUpdatesViewModel: CheckForUpdatesViewModel
-    let updater: SPUUpdater
-
-    init(updater: SPUUpdater) {
-        self.updater = updater
-        self.checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: updater)
-    }
-
-    var body: some View {
-        Button("Check for Updates…") {
-            updater.checkForUpdates()
-        }
-        .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
-    }
-}
-#endif
-
 // MARK: - Export / Print Commands
 
 struct ExportPDFCommand: View {
     @FocusedValue(\.documentText) var text
     @FocusedValue(\.documentFileURL) var fileURL
-    @AppStorage("editorFontSize") private var fontSize: Double = 16
+    @AppStorage("editorFontSize") private var fontSize: Double = 12
 
     var body: some View {
         Button("Export as PDF…") {
@@ -480,7 +439,7 @@ struct ExportPDFCommand: View {
 struct PrintCommand: View {
     @FocusedValue(\.documentText) var text
     @FocusedValue(\.documentFileURL) var fileURL
-    @AppStorage("editorFontSize") private var fontSize: Double = 16
+    @AppStorage("editorFontSize") private var fontSize: Double = 12
 
     var body: some View {
         Button("Print…") {
@@ -492,17 +451,3 @@ struct PrintCommand: View {
     }
 }
 
-#if canImport(Sparkle)
-final class CheckForUpdatesViewModel: ObservableObject {
-    @Published var canCheckForUpdates = false
-    private var observation: Any?
-
-    init(updater: SPUUpdater) {
-        observation = updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, change in
-            DispatchQueue.main.async {
-                self?.canCheckForUpdates = updater.canCheckForUpdates
-            }
-        }
-    }
-}
-#endif

@@ -10,7 +10,6 @@
 		001E14F66CC3E4FD44A82ECF /* KaTeX_Main-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 7187ABFF68371B759ABF8AC4 /* KaTeX_Main-Bold.woff2 */; };
 		00D73F552FE6CCE33CC33F7A /* katex.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 4FD7A410E3875B4C786B131A /* katex.min.js */; };
 		016FE74BFE625224E73A2A68 /* KaTeX_SansSerif-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 807DAB359A132C4D6F3149DB /* KaTeX_SansSerif-Bold.woff2 */; };
-		03936F9AD856264823E8DB3A /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 4DF0D78A336E2D9D674D47D2 /* KeyboardShortcuts */; };
 		042553A1514A3218E62811CD /* KaTeX_Fraktur-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = B2640C1557CED60974C1655B /* KaTeX_Fraktur-Regular.woff2 */; };
 		05B96E91F8256C542CF2D0B3 /* PreviewCSS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CAE473C3562F59C8BAE6E20 /* PreviewCSS.swift */; };
 		07B6D86BE3B2A3CB3595354B /* KaTeX_Fraktur-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 3DC64CEF4FA0E3A711C93D52 /* KaTeX_Fraktur-Bold.woff2 */; };
@@ -27,8 +26,9 @@
 		23A4EE6790D901F264BA2896 /* MarkdownDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = CDFD083F5CEDB0294A737E24 /* MarkdownDocument.icns */; };
 		26B1E529084B738E435C956F /* KaTeX_Main-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 7187ABFF68371B759ABF8AC4 /* KaTeX_Main-Bold.woff2 */; };
 		2F49453839BA305493FB221E /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 533BF0A0A5E3EA2560CF1BA2 /* fonts */; };
+		2FB5F83D3DD54CC8985F9FFB /* ReadOnlyViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A640C0E2FB96A86B95E16DB8 /* ReadOnlyViewer.swift */; };
 		2FC20E86946BFFE411480435 /* OFL-Inconsolata.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7A46AD25CC5FB9E4BE6070DE /* OFL-Inconsolata.txt */; };
-		3069BAEFFB0EF73722EAA2DD /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 7D41F73D0B44B0D5CDD99317 /* Sparkle */; };
+		3069BAEFFB0EF73722EAA2DD /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 4DF0D78A336E2D9D674D47D2 /* KeyboardShortcuts */; };
 		33DAD30BE5E58F559448CCA2 /* cmark in Frameworks */ = {isa = PBXBuildFile; productRef = CC77A681476F7EE7A093FA76 /* cmark */; };
 		35C1EABC472035C080988879 /* LocalImageSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BE34513476EE490A1A6A5BF /* LocalImageSupport.swift */; };
 		35ED0064FC45B88F60335CF6 /* KaTeX_Caligraphic-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = C7277077CCE8CC6F671BA7BD /* KaTeX_Caligraphic-Regular.woff2 */; };
@@ -40,6 +40,7 @@
 		406AD8D5C630097120B0C60A /* KaTeX_AMS-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = DCB089DECE0C240DA5C326AB /* KaTeX_AMS-Regular.woff2 */; };
 		41D36F4A227DA1B18A64E187 /* KaTeX_Main-Italic.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 561CA201B0D92CB3BB6D618C /* KaTeX_Main-Italic.woff2 */; };
 		48FD4B76697353C00BC9C706 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1191454C25DB7E5E81AB8DC7 /* FileWatcher.swift */; };
+		4F0BE79CBE504B8ABB3FD0FE /* TextEditBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A044FAA8D1ABDDFC744FEB /* TextEditBrowser.swift */; };
 		4FB3BC0D0EE4E7A7828D5D1D /* katex.min.css in Resources */ = {isa = PBXBuildFile; fileRef = 9B9A3ABF5F310A32DEE8CD36 /* katex.min.css */; };
 		4FFAD8E581163E9412DB3375 /* KaTeX_SansSerif-Italic.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 8C63D7AEB27A9F0CB262E645 /* KaTeX_SansSerif-Italic.woff2 */; };
 		51001F7DE85B20CB01792E40 /* OutlineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD4E35E9817922F678A49E4 /* OutlineView.swift */; };
@@ -77,6 +78,7 @@
 		9E5C1181A98FEB2C12043EC5 /* KindasMDQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8849734305B42A829F35A4AC /* KindasMDQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A3DDDEE3DD8F68295B87550B /* KaTeX_Size1-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = B9A9504CE72D1D15C25AAA17 /* KaTeX_Size1-Regular.woff2 */; };
 		A4E272BB783CB22D520031A5 /* PositionSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18C58D7977018EDE6FB272E2 /* PositionSync.swift */; };
+		A62BB1A4DF5D6D8F53A7FD8A /* MasterFolderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9217F7E9925EB8D861F633 /* MasterFolderModel.swift */; };
 		A6FE7C7651D12531F22AFF99 /* PDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579D4F11AC216D128C23BFA /* PDFExporter.swift */; };
 		AB161B4ACF8EB3C7CDC02420 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B67568DD67AAF659F945DD /* SettingsView.swift */; };
 		AB36A21A5992C296B12801B0 /* KaTeX_SansSerif-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 807DAB359A132C4D6F3149DB /* KaTeX_SansSerif-Bold.woff2 */; };
@@ -88,6 +90,7 @@
 		BD35BA88DC83C8791BA2B880 /* KaTeX_Size1-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = B9A9504CE72D1D15C25AAA17 /* KaTeX_Size1-Regular.woff2 */; };
 		C28C4DB501F4C88E0E576BB8 /* KaTeX_Script-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 94B1A19AB9FA41E7F47CF5A5 /* KaTeX_Script-Regular.woff2 */; };
 		C3605A1ACF84EE2345734062 /* KaTeX_AMS-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = DCB089DECE0C240DA5C326AB /* KaTeX_AMS-Regular.woff2 */; };
+		C71ABE27B75F62314CB10FCD /* QuickCopyButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA65CA11BA07D74E085E5A9E /* QuickCopyButtons.swift */; };
 		CB4420DD54593BCE67FA8722 /* MermaidSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD92BF33533F90D5495FCD4D /* MermaidSupport.swift */; };
 		CDA8E74BF133793B4ACB4D54 /* FrontmatterSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91966DA98C171744BCBB3194 /* FrontmatterSupport.swift */; };
 		CF27A25B72B1954F99AA7E28 /* KaTeX_Main-BoldItalic.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 8928415838CC7065BAD9E091 /* KaTeX_Main-BoldItalic.woff2 */; };
@@ -133,12 +136,14 @@
 /* Begin PBXFileReference section */
 		0BE34513476EE490A1A6A5BF /* LocalImageSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalImageSupport.swift; sourceTree = "<group>"; };
 		1191454C25DB7E5E81AB8DC7 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
+		13A044FAA8D1ABDDFC744FEB /* TextEditBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditBrowser.swift; sourceTree = "<group>"; };
 		13B7A37217BC081E7F5083AE /* ScratchpadContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScratchpadContentView.swift; sourceTree = "<group>"; };
 		18C58D7977018EDE6FB272E2 /* PositionSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionSync.swift; sourceTree = "<group>"; };
 		1A275FF740EF81A9595A9CF1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		241C25B38BA5A24249A60DB0 /* BlueprintEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueprintEditorView.swift; sourceTree = "<group>"; };
 		2A511EBB2EF019DE8ABB6015 /* KaTeX_Size4-Regular.woff2 */ = {isa = PBXFileReference; path = "KaTeX_Size4-Regular.woff2"; sourceTree = "<group>"; };
 		2B29BD46E42FE597D8899626 /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		2C9217F7E9925EB8D861F633 /* MasterFolderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterFolderModel.swift; sourceTree = "<group>"; };
 		2E03FE5545A1CB9E58B7CB10 /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
 		387647C63A7253B9C5D47227 /* DiagnosticLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLog.swift; sourceTree = "<group>"; };
 		3DC64CEF4FA0E3A711C93D52 /* KaTeX_Fraktur-Bold.woff2 */ = {isa = PBXFileReference; path = "KaTeX_Fraktur-Bold.woff2"; sourceTree = "<group>"; };
@@ -177,6 +182,7 @@
 		A012A8B7BDD8D65FA96C74BD /* FindBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBarView.swift; sourceTree = "<group>"; };
 		A173619EAC2F30C6AE58C20B /* ScratchpadShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScratchpadShortcuts.swift; sourceTree = "<group>"; };
 		A5448B669D04A27C0E3217C1 /* KaTeX_Math-BoldItalic.woff2 */ = {isa = PBXFileReference; path = "KaTeX_Math-BoldItalic.woff2"; sourceTree = "<group>"; };
+		A640C0E2FB96A86B95E16DB8 /* ReadOnlyViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadOnlyViewer.swift; sourceTree = "<group>"; };
 		A798640069FFAA9D29AAE3B4 /* ClearlyQuickLook.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClearlyQuickLook.entitlements; sourceTree = "<group>"; };
 		A81B471B7C08208B5833EFD4 /* ScratchpadEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScratchpadEditorView.swift; sourceTree = "<group>"; };
 		AD4F4835D64D743DB797F7CC /* Inconsolata-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inconsolata-Regular.ttf"; sourceTree = "<group>"; };
@@ -188,6 +194,7 @@
 		C7277077CCE8CC6F671BA7BD /* KaTeX_Caligraphic-Regular.woff2 */ = {isa = PBXFileReference; path = "KaTeX_Caligraphic-Regular.woff2"; sourceTree = "<group>"; };
 		C85754A835ACA8FF4CEA518C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CA1DBF680E810A5F1E5745CF /* ScratchpadMenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScratchpadMenuBar.swift; sourceTree = "<group>"; };
+		CA65CA11BA07D74E085E5A9E /* QuickCopyButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCopyButtons.swift; sourceTree = "<group>"; };
 		CDFD083F5CEDB0294A737E24 /* MarkdownDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = MarkdownDocument.icns; sourceTree = "<group>"; };
 		CE9A330AE558EF13D0E3FC42 /* Clearly-AppStore.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Clearly-AppStore.entitlements"; sourceTree = "<group>"; };
 		D21685182BECD710BD1EE5F0 /* ClearlyTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearlyTextView.swift; sourceTree = "<group>"; };
@@ -209,8 +216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B64E48C29A87703AE7C01E6 /* cmark in Frameworks */,
-				3069BAEFFB0EF73722EAA2DD /* Sparkle in Frameworks */,
-				03936F9AD856264823E8DB3A /* KeyboardShortcuts in Frameworks */,
+				3069BAEFFB0EF73722EAA2DD /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,11 +292,14 @@
 				E503F241D3994AC7CFEA670F /* KindasStripView.swift */,
 				459EE8D74CC429D37D25BA15 /* MarkdownDocument.swift */,
 				77AA9B3C2C936F18BB291F0B /* MarkdownSyntaxHighlighter.swift */,
+				2C9217F7E9925EB8D861F633 /* MasterFolderModel.swift */,
 				9CADA93A216502CEB0856067 /* OutlineState.swift */,
 				5BD4E35E9817922F678A49E4 /* OutlineView.swift */,
 				7579D4F11AC216D128C23BFA /* PDFExporter.swift */,
 				18C58D7977018EDE6FB272E2 /* PositionSync.swift */,
 				2B29BD46E42FE597D8899626 /* PreviewView.swift */,
+				CA65CA11BA07D74E085E5A9E /* QuickCopyButtons.swift */,
+				A640C0E2FB96A86B95E16DB8 /* ReadOnlyViewer.swift */,
 				6FCC3C009FF06D7331518A63 /* RecentFilesMenuHelper.swift */,
 				13B7A37217BC081E7F5083AE /* ScratchpadContentView.swift */,
 				A81B471B7C08208B5833EFD4 /* ScratchpadEditorView.swift */,
@@ -299,6 +308,7 @@
 				A173619EAC2F30C6AE58C20B /* ScratchpadShortcuts.swift */,
 				6730A8653EEEC312AF9BCEA9 /* ScrollSyncRelay.swift */,
 				57B67568DD67AAF659F945DD /* SettingsView.swift */,
+				13A044FAA8D1ABDDFC744FEB /* TextEditBrowser.swift */,
 				DC0C07F633044E286706E6C2 /* Theme.swift */,
 				80E82DD01F23B939B2793E10 /* Resources */,
 			);
@@ -385,7 +395,6 @@
 			name = KindasMDEditor;
 			packageProductDependencies = (
 				BA915BE25F47C60B7AD142F6 /* cmark */,
-				7D41F73D0B44B0D5CDD99317 /* Sparkle */,
 				4DF0D78A336E2D9D674D47D2 /* KeyboardShortcuts */,
 			);
 			productName = KindasMDEditor;
@@ -434,7 +443,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				89C0FB1537F46736A48B9C0A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				5CD17525560FD7BD8A965C54 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				8780A67A1EDEF76782BB503D /* XCRemoteSwiftPackageReference "cmark-gfm" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -540,6 +548,7 @@
 				8285105F126ACBA83E5C22CC /* MarkdownDocument.swift in Sources */,
 				FA4046B604B44C402F2FF0D8 /* MarkdownRenderer.swift in Sources */,
 				AFA77A2ECE9B66C14385739F /* MarkdownSyntaxHighlighter.swift in Sources */,
+				A62BB1A4DF5D6D8F53A7FD8A /* MasterFolderModel.swift in Sources */,
 				CB4420DD54593BCE67FA8722 /* MermaidSupport.swift in Sources */,
 				7B924C7875E7C4D5340153FD /* OutlineState.swift in Sources */,
 				51001F7DE85B20CB01792E40 /* OutlineView.swift in Sources */,
@@ -547,6 +556,8 @@
 				A4E272BB783CB22D520031A5 /* PositionSync.swift in Sources */,
 				8D0B775A3BBD86EA77EC8192 /* PreviewCSS.swift in Sources */,
 				82E20C22EBBF287CA32B964D /* PreviewView.swift in Sources */,
+				C71ABE27B75F62314CB10FCD /* QuickCopyButtons.swift in Sources */,
+				2FB5F83D3DD54CC8985F9FFB /* ReadOnlyViewer.swift in Sources */,
 				78B53870F9DDACC5459519FD /* RecentFilesMenuHelper.swift in Sources */,
 				9C6CF7D261DA8854CFF1AAAC /* ScratchpadContentView.swift in Sources */,
 				D14A895BAEE13508BEBE5A28 /* ScratchpadEditorView.swift in Sources */,
@@ -555,6 +566,7 @@
 				38423607D2E69311815BC40A /* ScratchpadShortcuts.swift in Sources */,
 				1FC2630F4CBDD306FBAA685C /* ScrollSyncRelay.swift in Sources */,
 				AB161B4ACF8EB3C7CDC02420 /* SettingsView.swift in Sources */,
+				4F0BE79CBE504B8ABB3FD0FE /* TextEditBrowser.swift in Sources */,
 				6A76D5EF61D4D5EA1E4E269D /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -827,28 +839,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		5CD17525560FD7BD8A965C54 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
 		8780A67A1EDEF76782BB503D /* XCRemoteSwiftPackageReference "cmark-gfm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/brokenhandsio/cmark-gfm.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.1.0;
+				kind = exactVersion;
+				version = 2.1.0;
 			};
 		};
 		89C0FB1537F46736A48B9C0A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.1.0;
+				kind = exactVersion;
+				version = 2.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -858,11 +862,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 89C0FB1537F46736A48B9C0A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
-		};
-		7D41F73D0B44B0D5CDD99317 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5CD17525560FD7BD8A965C54 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
 		};
 		BA915BE25F47C60B7AD142F6 /* cmark */ = {
 			isa = XCSwiftPackageProductDependency;

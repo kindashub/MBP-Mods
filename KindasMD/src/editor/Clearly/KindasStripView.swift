@@ -1,35 +1,79 @@
 import AppKit
-import Darwin
 import SwiftUI
 
 // MARK: - Box character grid (copy to clipboard; optional edit layout)
 
 enum KindasBoxGridConfig {
-    /// Full-width strip grid: 41 columns × 4 rows (see KindasMD_Blueprint.md — dense palette).
-    static let columnsPerRow = 41
-    static let rowCount = 4
-    static var cellCount: Int { columnsPerRow * rowCount }
+    /// Full-width strip grid: 41 columns × 4 rows (single char), plus row 5 (20 cols × 2 chars), plus row 6 (10 cols × 4 chars).
+    static let columnsPerRow = 41      // For rows 1-4
+    static let row5Columns = 20        // Row 5: 2-char cells
+    static let row6Columns = 10      // Row 6: 4-char cells
+    static let rowCount = 6
+    static let row5CharLimit = 2
+    static let row6CharLimit = 4
+
+    /// Total cells: (4 × 41) + 20 + 10 = 194
+    static var cellCount: Int { (columnsPerRow * 4) + row5Columns + row6Columns }
 
     static func defaultCells() -> [String] {
-        let raw =
+        // Rows 1-4: 164 single-character cells (existing content)
+        let rawRows1to4 =
             "╌─═━╎│║┃█░▒▓⦿┌┐└┘├┤┬┴┼╔╗╚╝╠╣╦╩╬·•□■○●★☆§→←↑↓"
             + "╴╵╶╷╸╹╺╻╼╽╾╿┏┓┗┛┳┻╋┣┫╍╏═╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫"
             + "▀▄▌▐▖▗▘▝▞▟▁▂▃▄▅▆▇█░▒▓▔▕▖▗▘▙▚▛▜▝▞▟"
             + "⋯⋮⋯⌘⌥⇧⌃⌤␣¶†‡※‰♠♣♥♦✓✗⊢⊣⊤⊥⊦⊧⊨⊩⊪⊫⊬⊭⊮⊯"
-            + "⇐⇒⇔∀∃∴∵⊂⊃⊆⊇∩∪∅∈∉∑∏∫√∞∧∨¬⊕⊗"
-            + "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖ"
-        var cells = raw.map { String($0) }
-        while cells.count < cellCount {
+
+        // Row 5: 20 two-character cells (default: box-drawing pairs)
+        let row5Defaults = [
+            "──", "══", "━━", "││", "║║", "┌┐", "└┘", "├┤", "┬┴", "┼┼",
+            "╔╗", "╚╝", "╠╣", "╦╩", "╬╬", "▌▐", "▖▗", "▘▝", "▙▟", "▚▞"
+        ]
+
+        // Row 6: 10 four-character cells (default: patterns)
+        let row6Defaults = [
+            "────", "════", "━━━━", "····", "░░░░", "▒▒▒▒", "▓▓▓▓", "████", "→→→→", "⇒⇒⇒⇒"
+        ]
+
+        var cells = rawRows1to4.map { String($0) }
+        // Pad rows 1-4 to exactly 164 cells if needed
+        while cells.count < (columnsPerRow * 4) {
             cells.append(" ")
         }
+        // Add row 5 and row 6
+        cells.append(contentsOf: row5Defaults)
+        cells.append(contentsOf: row6Defaults)
+
         return Array(cells.prefix(cellCount))
     }
 
-    /// Single extended grapheme per palette cell; empty input becomes a visible space.
-    static func normalizeCell(_ s: String) -> String {
+    /// Normalize cell content: truncate to maxLength, remove newlines, empty becomes space.
+    static func normalizeCell(_ s: String, maxLength: Int = 1) -> String {
         let t = s.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "")
         if t.isEmpty { return " " }
-        return String(t.first!)
+        // Take up to maxLength characters from the start
+        let endIndex = t.index(t.startIndex, offsetBy: min(maxLength, t.count))
+        return String(t[..<endIndex])
+    }
+
+    /// Get max character limit for a given cell index
+    static func charLimit(forIndex index: Int) -> Int {
+        if index < (columnsPerRow * 4) {
+            return 1  // Rows 1-4: single char
+        } else if index < (columnsPerRow * 4) + row5Columns {
+            return row5CharLimit  // Row 5: 2 chars
+        } else {
+            return row6CharLimit    // Row 6: 4 chars
+        }
+    }
+
+    /// Get column count for a given row index (0-based)
+    static func columns(forRow row: Int) -> Int {
+        switch row {
+        case 0, 1, 2, 3: return columnsPerRow  // Rows 1-4
+        case 4: return row5Columns              // Row 5
+        case 5: return row6Columns              // Row 6
+        default: return columnsPerRow
+        }
     }
 }
 
@@ -37,28 +81,42 @@ struct BoxCharacterPaletteView: View {
     @Binding var cells: [String]
     var fontSize: CGFloat
 
-    private var columnsPerRow: Int { KindasBoxGridConfig.columnsPerRow }
-    private var gridRows: Int { KindasBoxGridConfig.rowCount }
+    private let hPad: CGFloat = 12
+    private let spacing: CGFloat = 1
 
     var body: some View {
-        let hPad: CGFloat = 9
-        let vPad: CGFloat = 8
-        let spacing: CGFloat = 1
-
         VStack(alignment: .leading, spacing: spacing) {
-            ForEach(0 ..< gridRows, id: \.self) { row in
+            // Rows 1-4: 41 columns, 1 char per cell, 1:1 aspect ratio
+            ForEach(0..<4, id: \.self) { row in
                 HStack(spacing: spacing) {
-                    ForEach(0 ..< columnsPerRow, id: \.self) { col in
-                        let index = row * columnsPerRow + col
-                        boxCell(character: safeCharacter(at: index))
+                    ForEach(0..<KindasBoxGridConfig.columnsPerRow, id: \.self) { col in
+                        let index = row * KindasBoxGridConfig.columnsPerRow + col
+                        boxCell(character: safeCharacter(at: index), fontScale: 0.72)
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
+
+            // Row 5: 20 columns, 2 chars per cell, 2:1 aspect ratio (wider cells)
+            HStack(spacing: spacing) {
+                ForEach(0..<KindasBoxGridConfig.row5Columns, id: \.self) { col in
+                    let index = (KindasBoxGridConfig.columnsPerRow * 4) + col
+                    boxCell(character: safeCharacter(at: index), fontScale: 0.65, aspectRatio: 2.0)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            // Row 6: 10 columns, 4 chars per cell, 4:1 aspect ratio (even wider)
+            HStack(spacing: spacing) {
+                ForEach(0..<KindasBoxGridConfig.row6Columns, id: \.self) { col in
+                    let index = (KindasBoxGridConfig.columnsPerRow * 4) + KindasBoxGridConfig.row5Columns + col
+                    boxCell(character: safeCharacter(at: index), fontScale: 0.60, aspectRatio: 4.0)
+                }
+            }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.horizontal, hPad)
-        .padding(.vertical, vPad)
     }
 
     private func safeCharacter(at index: Int) -> String {
@@ -68,31 +126,33 @@ struct BoxCharacterPaletteView: View {
     }
 
     @ViewBuilder
-    private func boxCell(character: String) -> some View {
+    private func boxCell(character: String, fontScale: CGFloat, aspectRatio: CGFloat = 1.0) -> some View {
         let ch = character
         Button {
             copyToPasteboard(ch)
         } label: {
             GeometryReader { geo in
-                let s = min(geo.size.width, geo.size.height)
+                let s = min(geo.size.width / aspectRatio, geo.size.height)
+                let cellFontSize = max(8, min(s * 0.65, fontSize * fontScale))
                 ZStack {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Color(nsColor: Theme.backgroundColor).opacity(0.55))
                     RoundedRectangle(cornerRadius: 3)
                         .strokeBorder(Color.secondary.opacity(0.32), lineWidth: 0.5)
                     Text(ch.isEmpty ? " " : ch)
-                        .font(.system(size: max(9, min(s * 0.58, fontSize * 0.72)), design: .monospaced))
+                        .font(.system(size: cellFontSize, design: .monospaced))
                         .foregroundStyle(Color.accentColor)
-                        .minimumScaleFactor(0.35)
+                        .minimumScaleFactor(0.30)
+                        .lineLimit(1)
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
                 .contentShape(Rectangle())
             }
-            .aspectRatio(1, contentMode: .fit)
+            .aspectRatio(aspectRatio, contentMode: .fit)
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .help("Copy to clipboard")
     }
 
@@ -109,33 +169,47 @@ struct BoxCharacterEditGridView: View {
     @Binding var cells: [String]
     var fontSize: CGFloat
 
-    private var columnsPerRow: Int { KindasBoxGridConfig.columnsPerRow }
-    private var gridRows: Int { KindasBoxGridConfig.rowCount }
+    private let hPad: CGFloat = 12
+    private let spacing: CGFloat = 1
 
     var body: some View {
-        let hPad: CGFloat = 9
-        let vPad: CGFloat = 8
-        let spacing: CGFloat = 1
-
         VStack(alignment: .leading, spacing: spacing) {
-            ForEach(0 ..< gridRows, id: \.self) { row in
+            // Rows 1-4: 41 columns, 1 char per cell
+            ForEach(0..<4, id: \.self) { row in
                 HStack(spacing: spacing) {
-                    ForEach(0 ..< columnsPerRow, id: \.self) { col in
-                        let index = row * columnsPerRow + col
-                        editCell(at: index)
+                    ForEach(0..<KindasBoxGridConfig.columnsPerRow, id: \.self) { col in
+                        let index = row * KindasBoxGridConfig.columnsPerRow + col
+                        editCell(at: index, fontScale: 0.72, aspectRatio: 1.0)
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
+
+            // Row 5: 20 columns, 2 chars per cell
+            HStack(spacing: spacing) {
+                ForEach(0..<KindasBoxGridConfig.row5Columns, id: \.self) { col in
+                    let index = (KindasBoxGridConfig.columnsPerRow * 4) + col
+                    editCell(at: index, fontScale: 0.65, aspectRatio: 2.0)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            // Row 6: 10 columns, 4 chars per cell
+            HStack(spacing: spacing) {
+                ForEach(0..<KindasBoxGridConfig.row6Columns, id: \.self) { col in
+                    let index = (KindasBoxGridConfig.columnsPerRow * 4) + KindasBoxGridConfig.row5Columns + col
+                    editCell(at: index, fontScale: 0.60, aspectRatio: 4.0)
+                }
+            }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
-        .frame(minHeight: 96)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.horizontal, hPad)
-        .padding(.vertical, vPad)
     }
 
     private func cellBinding(at index: Int) -> Binding<String> {
-        Binding(
+        let maxLength = KindasBoxGridConfig.charLimit(forIndex: index)
+        return Binding(
             get: {
                 guard index < cells.count else { return " " }
                 let v = cells[index]
@@ -146,17 +220,17 @@ struct BoxCharacterEditGridView: View {
                 while next.count <= index {
                     next.append(" ")
                 }
-                next[index] = KindasBoxGridConfig.normalizeCell(newValue)
+                next[index] = KindasBoxGridConfig.normalizeCell(newValue, maxLength: maxLength)
                 cells = next
             }
         )
     }
 
     @ViewBuilder
-    private func editCell(at index: Int) -> some View {
+    private func editCell(at index: Int, fontScale: CGFloat, aspectRatio: CGFloat) -> some View {
         GeometryReader { geo in
-            let s = min(geo.size.width, geo.size.height)
-            let fontSizePx = max(9, min(s * 0.58, fontSize * 0.72))
+            let s = min(geo.size.width / aspectRatio, geo.size.height)
+            let cellFontSize = max(8, min(s * 0.65, fontSize * fontScale))
             ZStack {
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color(nsColor: Theme.backgroundColor).opacity(0.55))
@@ -164,301 +238,21 @@ struct BoxCharacterEditGridView: View {
                     .strokeBorder(Color.accentColor.opacity(0.45), lineWidth: 0.5)
                 TextField("", text: cellBinding(at: index))
                     .textFieldStyle(.plain)
-                    .font(.system(size: fontSizePx, design: .monospaced))
+                    .font(.system(size: cellFontSize, design: .monospaced))
                     .foregroundColor(Color.accentColor)
                     .tint(Color.accentColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.35)
+                    .minimumScaleFactor(0.30)
                     .padding(2)
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .contentShape(Rectangle())
         }
-        .aspectRatio(1, contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .help("One character per square; paste is trimmed to one glyph")
-    }
-}
-
-// MARK: - MASTER folder (default ~/TextMD/MASTER; optional security-scoped bookmark)
-
-@MainActor
-final class MasterFolderModel: ObservableObject {
-    private static let bookmarkDefaultsKey = "kindasMasterFolderBookmark_v1"
-
-    @Published var fileURLs: [URL] = []
-    @Published var selectedURL: URL?
-    @Published var text: String = ""
-    /// Last disk error (read/save) for MASTER; shown in the strip so failures are not silent.
-    @Published var lastIOError: String?
-    /// Active root: default home-relative path, or a folder the user chose (stored as a security-scoped bookmark).
-    @Published private(set) var masterRootURL: URL
-
-    private var loadToken = UUID()
-    private var saveTask: Task<Void, Never>?
-    private var isApplyingLoad = false
-
-    private var usesSecurityBookmark: Bool {
-        UserDefaults.standard.data(forKey: Self.bookmarkDefaultsKey) != nil
-    }
-
-    init() {
-        masterRootURL = Self.resolveMasterRootFromDefaults()
-    }
-
-    /// Real `~/…` — **not** the sandbox container (`…/Library/Containers/…/Data`), which would make `TextMD/MASTER` empty while Finder shows files under `/Users/you/…`.
-    /// Prefer **`getpwuid` first**: GUI / document apps often set `HOME` to the container even when the app is not sandboxed; passwd is the stable real home on macOS.
-    private static func resolvedUserHomeURL() -> URL {
-        if let pw = getpwuid(getuid()) {
-            let path = String(cString: pw.pointee.pw_dir)
-            if path.hasPrefix("/"), !path.contains("/Library/Containers/") {
-                return URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
-            }
-        }
-        if let home = ProcessInfo.processInfo.environment["HOME"],
-           home.hasPrefix("/"),
-           !home.contains("/Library/Containers/")
-        {
-            return URL(fileURLWithPath: home, isDirectory: true).standardizedFileURL
-        }
-        let fmHome = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL
-        if fmHome.path.contains("/Library/Containers/") {
-            DiagnosticLog.log("MasterFolder: homeDirectoryForCurrentUser is inside Containers — passwd/HOME did not yield a real home; MASTER path may be wrong")
-        }
-        return fmHome
-    }
-
-    private static func defaultMasterRoot() -> URL {
-        resolvedUserHomeURL()
-            .appendingPathComponent("TextMD/MASTER", isDirectory: true)
-    }
-
-    private static func resolveMasterRootFromDefaults() -> URL {
-        guard let data = UserDefaults.standard.data(forKey: Self.bookmarkDefaultsKey) else {
-            return defaultMasterRoot()
-        }
-        var stale = false
-        do {
-            let url = try URL(
-                resolvingBookmarkData: data,
-                options: [.withSecurityScope],
-                relativeTo: nil,
-                bookmarkDataIsStale: &stale
-            )
-            if stale {
-                UserDefaults.standard.removeObject(forKey: Self.bookmarkDefaultsKey)
-                DiagnosticLog.log("MasterFolder: bookmark was stale — cleared; using default ~/TextMD/MASTER")
-                return defaultMasterRoot()
-            }
-            return url.standardizedFileURL
-        } catch {
-            DiagnosticLog.log("MasterFolder: bookmark resolve failed: \(error)")
-            UserDefaults.standard.removeObject(forKey: Self.bookmarkDefaultsKey)
-            return defaultMasterRoot()
-        }
-    }
-
-    func chooseMasterFolder() {
-        let p = NSOpenPanel()
-        p.canChooseFiles = false
-        p.canChooseDirectories = true
-        p.canCreateDirectories = true
-        p.allowsMultipleSelection = false
-        p.directoryURL = masterRootURL
-        p.prompt = "Choose MASTER folder"
-        p.message = "Pick the folder that contains your master .md files (e.g. TextMD/MASTER)."
-        guard p.runModal() == .OK, let url = p.url else { return }
-        do {
-            let data = try url.bookmarkData(
-                options: [.withSecurityScope],
-                includingResourceValuesForKeys: nil,
-                relativeTo: nil
-            )
-            UserDefaults.standard.set(data, forKey: Self.bookmarkDefaultsKey)
-            masterRootURL = url.standardizedFileURL
-            DiagnosticLog.log("MasterFolder: saved security-scoped bookmark path=\(masterRootURL.path)")
-            ensureFolderAndRefresh()
-        } catch {
-            DiagnosticLog.log("MasterFolder: bookmarkData failed: \(error)")
-        }
-    }
-
-    func useDefaultMasterFolder() {
-        UserDefaults.standard.removeObject(forKey: Self.bookmarkDefaultsKey)
-        masterRootURL = Self.defaultMasterRoot()
-        DiagnosticLog.log("MasterFolder: using default ~/TextMD/MASTER")
-        ensureFolderAndRefresh()
-    }
-
-    func ensureFolderAndRefresh() {
-        // Re-resolve default `~/TextMD/MASTER` every time so we never stick to a sandbox-container "home" path.
-        if !usesSecurityBookmark {
-            masterRootURL = Self.defaultMasterRoot()
-            do {
-                try FileManager.default.createDirectory(at: masterRootURL, withIntermediateDirectories: true)
-            } catch {
-                DiagnosticLog.log("MasterFolder: createDirectory failed: \(error)")
-            }
-        }
-        refreshFileList(selectFirstIfNeeded: selectedURL == nil)
-    }
-
-    func refreshFileList(selectFirstIfNeeded: Bool) {
-        let fm = FileManager.default
-        let dir = masterRootURL
-        let contents: [URL]
-
-        let scoped = usesSecurityBookmark
-        if scoped {
-            guard dir.startAccessingSecurityScopedResource() else {
-                DiagnosticLog.log("MasterFolder: startAccessingSecurityScopedResource failed path=\(dir.path)")
-                fileURLs = []
-                return
-            }
-        }
-        defer {
-            if scoped {
-                dir.stopAccessingSecurityScopedResource()
-            }
-        }
-
-        do {
-            contents = try fm.contentsOfDirectory(
-                at: dir,
-                includingPropertiesForKeys: [.isRegularFileKey],
-                options: [.skipsHiddenFiles]
-            )
-        } catch {
-            DiagnosticLog.log("MasterFolder: contentsOfDirectory failed: \(error) path=\(dir.path)")
-            fileURLs = []
-            return
-        }
-        DiagnosticLog.log("MasterFolder: listing path=\(dir.path) entries=\(contents.count) bookmark=\(usesSecurityBookmark)")
-        var mdFiles: [URL] = []
-        for url in contents {
-            var isDir: ObjCBool = false
-            guard fm.fileExists(atPath: url.path, isDirectory: &isDir), !isDir.boolValue else { continue }
-            guard url.pathExtension.lowercased() == "md" else { continue }
-            mdFiles.append(url.standardizedFileURL)
-        }
-        fileURLs = mdFiles.sorted {
-            $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending
-        }
-        DiagnosticLog.log("MasterFolder: \(fileURLs.count) .md file(s) — \(fileURLs.map(\.lastPathComponent).joined(separator: ", "))")
-        if selectFirstIfNeeded, selectedURL == nil, let first = fileURLs.first {
-            select(first)
-        }
-    }
-
-    private func readFileData(at url: URL) -> Data {
-        do {
-            let data: Data
-            if usesSecurityBookmark {
-                guard masterRootURL.startAccessingSecurityScopedResource() else {
-                    let msg = "Security-scoped access to the MASTER folder was denied."
-                    lastIOError = msg
-                    DiagnosticLog.log("MasterFolder: read — startAccessingSecurityScopedResource failed")
-                    return Data()
-                }
-                defer { masterRootURL.stopAccessingSecurityScopedResource() }
-                data = try Data(contentsOf: url)
-            } else {
-                data = try Data(contentsOf: url)
-            }
-            lastIOError = nil
-            return data
-        } catch {
-            lastIOError = error.localizedDescription
-            DiagnosticLog.log("MasterFolder: read failed: \(error) url=\(url.path)")
-            return Data()
-        }
-    }
-
-    private func writeFileData(_ data: Data, to url: URL) throws {
-        do {
-            if usesSecurityBookmark {
-                guard masterRootURL.startAccessingSecurityScopedResource() else {
-                    lastIOError = "Security-scoped access to the MASTER folder was denied."
-                    throw CocoaError(.fileReadNoPermission)
-                }
-                defer { masterRootURL.stopAccessingSecurityScopedResource() }
-                try data.write(to: url, options: .atomic)
-            } else {
-                try data.write(to: url, options: .atomic)
-            }
-            lastIOError = nil
-        } catch {
-            lastIOError = error.localizedDescription
-            throw error
-        }
-    }
-
-    func select(_ url: URL?) {
-        let normalized = url.map { URL(fileURLWithPath: $0.path).standardizedFileURL }
-        guard normalized != selectedURL else { return }
-        saveTask?.cancel()
-        saveSynchronouslyForCurrentSelection()
-        selectedURL = normalized
-        guard let url = normalized else {
-            isApplyingLoad = true
-            text = ""
-            Task { @MainActor in
-                self.isApplyingLoad = false
-            }
-            return
-        }
-        let token = UUID()
-        loadToken = token
-        let data = readFileData(at: url)
-        guard loadToken == token else { return }
-        let s = String(data: data, encoding: .utf8) ?? ""
-        isApplyingLoad = true
-        text = s
-        // Let SwiftUI / onChange see isApplyingLoad == true for this turn so we do not treat load as a user edit.
-        Task { @MainActor in
-            self.isApplyingLoad = false
-        }
-    }
-
-    func reloadFromDisk() {
-        guard let url = selectedURL else { return }
-        let token = UUID()
-        loadToken = token
-        let data = readFileData(at: url)
-        guard loadToken == token else { return }
-        let s = String(data: data, encoding: .utf8) ?? ""
-        isApplyingLoad = true
-        text = s
-        Task { @MainActor in
-            self.isApplyingLoad = false
-        }
-    }
-
-    /// Call when `text` changes from user editing (not from disk load).
-    func scheduleSaveAfterEdit() {
-        guard !isApplyingLoad, let url = selectedURL else { return }
-        let snapshot = text
-        saveTask?.cancel()
-        saveTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 400_000_000)
-            guard !Task.isCancelled, self.selectedURL == url else { return }
-            do {
-                try self.writeFileData(Data(snapshot.utf8), to: url)
-            } catch {
-                DiagnosticLog.log("MasterFolder: save failed: \(error)")
-            }
-        }
-    }
-
-    private func saveSynchronouslyForCurrentSelection() {
-        guard let url = selectedURL else { return }
-        do {
-            try writeFileData(Data(text.utf8), to: url)
-        } catch {
-            DiagnosticLog.log("MasterFolder: save before switch failed: \(error)")
-        }
+        .aspectRatio(aspectRatio, contentMode: .fit)
+        .help("Max \(KindasBoxGridConfig.charLimit(forIndex: index)) character(s)")
     }
 }
 
@@ -469,34 +263,26 @@ struct KindasCharactersStripView: View {
     @State private var editSquares = false
     var fontSize: CGFloat
 
-    private var stripCaption: String {
-        let ver = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "?"
-        return "41×4 · build \(ver) · tap = copy · Edit = per-cell"
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("Box characters")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 8)
-                Toggle("Edit squares", isOn: $editSquares)
-                    .toggleStyle(.checkbox)
-                    .font(.caption)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .onChange(of: editSquares) { _, _ in
-                        boxCells = normalizedBoxCells(from: boxCells)
-                    }
+            HStack(alignment: .center, spacing: 8) {
+                Spacer(minLength: 0)
+                Button {
+                    editSquares.toggle()
+                    boxCells = normalizedBoxCells(from: boxCells)
+                } label: {
+                    Image(systemName: editSquares ? "square.grid.3x3" : "square.and.pencil")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .frame(width: 24, height: 22)
+                .contentShape(Rectangle())
+                .help(editSquares ? "Copy mode — tap a cell to copy to clipboard" : "Edit squares — one character per cell")
             }
             .padding(.horizontal, 10)
             .padding(.top, 6)
-
-            Text(stripCaption)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .padding(.horizontal, 10)
-                .padding(.bottom, 2)
+            .padding(.bottom, 4)
 
             if editSquares {
                 BoxCharacterEditGridView(cells: $boxCells, fontSize: fontSize)
@@ -505,6 +291,7 @@ struct KindasCharactersStripView: View {
             }
         }
         .background(Theme.backgroundColorSwiftUI)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func normalizedBoxCells(from cells: [String]) -> [String] {
@@ -517,7 +304,13 @@ struct KindasCharactersStripView: View {
     }
 }
 
-// MARK: - MASTER strip (picker + scratch editor; below characters when both open)
+// MARK: - MASTER strip (picker + scratch editor; bottom of column — `charactersVisible` adjusts scratch height vs box strip)
+
+/// MASTER scratch `BlueprintEditorView` heights (readable scratch without eating the whole window).
+private enum MasterBlueprintLayout {
+    static let minHeightWithCharacters: CGFloat = 34
+    static let minHeightCharactersHidden: CGFloat = 42
+}
 
 struct KindasMasterStripView: View {
     @ObservedObject var masterModel: MasterFolderModel
@@ -574,8 +367,10 @@ struct KindasMasterStripView: View {
             BlueprintEditorView(text: $masterModel.text, fontSize: fontSize)
                 .id(masterModel.selectedURL?.path ?? "__master_none__")
                 .frame(
-                    minHeight: charactersVisible ? 72 : 100,
-                    maxHeight: charactersVisible ? 200 : .infinity,
+                    minHeight: charactersVisible
+                        ? MasterBlueprintLayout.minHeightWithCharacters
+                        : MasterBlueprintLayout.minHeightCharactersHidden,
+                    maxHeight: .infinity,
                     alignment: .top
                 )
                 .background(Theme.backgroundColorSwiftUI)
@@ -593,7 +388,7 @@ struct KindasMasterStripView: View {
                     .padding(.bottom, 2)
             }
         }
-        .frame(maxHeight: charactersVisible ? nil : .infinity, alignment: .top)
+        .frame(minHeight: charactersVisible ? 83 : 131, maxHeight: 238, alignment: .top)
         .background(Theme.backgroundColorSwiftUI)
         .onAppear {
             masterModel.ensureFolderAndRefresh()

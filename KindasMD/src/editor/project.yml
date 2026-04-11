@@ -9,13 +9,10 @@ options:
 packages:
   cmark-gfm:
     url: https://github.com/brokenhandsio/cmark-gfm.git
-    from: "2.1.0"
-  Sparkle:
-    url: https://github.com/sparkle-project/Sparkle
-    from: "2.6.0"
+    exactVersion: "2.1.0"
   KeyboardShortcuts:
     url: https://github.com/sindresorhus/KeyboardShortcuts
-    from: "2.1.0"
+    exactVersion: "2.1.0"
 
 targets:
   KindasMDEditor:
@@ -38,7 +35,6 @@ targets:
     dependencies:
       - package: cmark-gfm
         product: cmark
-      - package: Sparkle
       - package: KeyboardShortcuts
       - target: KindasMDQuickLook
         embed: true

@@ -20,8 +20,8 @@ touch "$FILENAME"
 
 # Resolve KindasMD module root (…/KindasMD) from this script (…/KindasMD/system/kindasmd).
 MOD_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-INSTALLED="${MOD_DIR}/KindasMDEditor.app"
-DERIVED_DEBUG="${MOD_DIR}/src/editor/.derivedData/Build/Products/Debug/KindasMDEditor.app"
+INSTALLED="${MOD_DIR}/app/KindasMDEditor.app"
+DERIVED_DEBUG="${MOD_DIR}/src/editor/build-dd/Build/Products/Debug/KindasMDEditor.app"
 LEGACY_HOME="${HOME}/MBP-Mods/KindasMD/KindasMDEditor.app"
 
 APP=""

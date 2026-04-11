@@ -8,7 +8,7 @@ struct ScratchpadMenuBar: View {
         Button("New Scratchpad") {
             manager.createScratchpad()
         }
-        .keyboardShortcut(for: .newScratchpad)
+        .newScratchpadKeyboardShortcut()
 
         Divider()
 

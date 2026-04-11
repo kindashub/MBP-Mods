@@ -18,7 +18,7 @@ final class ScratchpadTextView: PersistentTextCheckingTextView {
 
 struct ScratchpadEditorView: NSViewRepresentable {
     @Binding var text: String
-    var fontSize: CGFloat = 16
+    var fontSize: CGFloat = 12
     var onSave: (() -> Void)?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -113,7 +113,9 @@ struct ScratchpadEditorView: NSViewRepresentable {
             ]
 
             context.coordinator.isHighlighting = true
-            context.coordinator.highlighter?.highlightAll(textView.textStorage!, caller: "scratchpad-appearance")
+            if let storage = textView.textStorage {
+                context.coordinator.highlighter?.highlightAll(storage, caller: "scratchpad-appearance")
+            }
             context.coordinator.isHighlighting = false
         }
 
@@ -123,7 +125,9 @@ struct ScratchpadEditorView: NSViewRepresentable {
             textView.string = text
             textView.selectedRanges = selectedRanges
             context.coordinator.isHighlighting = true
-            context.coordinator.highlighter?.highlightAll(textView.textStorage!, caller: "scratchpad-externalText")
+            if let storage = textView.textStorage {
+                context.coordinator.highlighter?.highlightAll(storage, caller: "scratchpad-externalText")
+            }
             context.coordinator.isHighlighting = false
             context.coordinator.isUpdating = false
         }
@@ -150,7 +154,9 @@ struct ScratchpadEditorView: NSViewRepresentable {
             if isUpdating { return }
 
             isHighlighting = true
-            highlighter?.highlightAll(textView.textStorage!, caller: "scratchpad-textDidChange")
+            if let storage = textView.textStorage {
+                highlighter?.highlightAll(storage, caller: "scratchpad-textDidChange")
+            }
             isHighlighting = false
 
             let newText = textView.string

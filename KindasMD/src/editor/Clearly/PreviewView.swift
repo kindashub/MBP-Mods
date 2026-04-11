@@ -9,9 +9,7 @@ struct PreviewView: NSViewRepresentable {
     var fontSize: CGFloat = 18
     var mode: ViewMode
     var positionSyncID: String
-    var scrollSyncEnabled: Bool = true
-    /// When set, editor-originated scroll positions are applied via `takePreviewLead()` in `updateNSView`.
-    var scrollRelay: ScrollSyncRelay?
+    @ObservedObject var scrollRelay: ScrollSyncRelay
     var fileURL: URL?
     var findState: FindState?
     var outlineState: OutlineState?
@@ -55,7 +53,6 @@ struct PreviewView: NSViewRepresentable {
         }
 
         context.coordinator.webView = webView
-        context.coordinator.startScrollBridgeObserver()
 
         loadHTML(in: webView, context: context)
         return webView
@@ -65,29 +62,44 @@ struct PreviewView: NSViewRepresentable {
         webView.underPageBackgroundColor = Theme.backgroundColor
         context.coordinator.fileURL = fileURL
         context.coordinator.positionSyncID = positionSyncID
-        context.coordinator.scrollSyncEnabled = scrollSyncEnabled
         context.coordinator.mode = mode
 
-        if scrollSyncEnabled, mode == .split, let relay = scrollRelay, let lead = relay.takePreviewLead() {
-            context.coordinator.scrollFraction = lead
-            Self.applyScrollFraction(to: webView, fraction: lead, coordinator: context.coordinator)
+        let priorLast = context.coordinator.lastMode
+
+        // Entering full preview: never carry split echo window over — it would drop user scrolls and stale the bridge.
+        if mode == .preview, priorLast != .preview {
+            context.coordinator.scrollEchoDeadUntil = 0
         }
 
-        // Sync preview scroll when the preview pane was hidden (edit-only) and is now shown.
-        let last = context.coordinator.lastMode
-        if (mode == .preview || mode == .split), last == .edit {
+        // Leaving full preview: save line-based position for edit mode restore.
+        if priorLast == .preview && (mode == .edit || mode == .split) {
+            // Estimate line number from scroll fraction (honest approximation, no source maps).
+            let totalLines = markdown.components(separatedBy: "\n").count
+            let estimatedLine = Int(Double(totalLines) * min(max(context.coordinator.scrollFraction, 0), 1))
+            ScrollPositionStore.save(.init(firstVisibleLine: estimatedLine, fractionalLine: 0), for: positionSyncID)
+        }
+
+        if mode == .split, let lead = scrollRelay.takePreviewLead() {
+            context.coordinator.scrollFraction = lead
+            Self.applyScrollFraction(to: webView, fraction: lead, coordinator: context.coordinator)
+        } else if (mode == .preview || mode == .split), priorLast == .edit {
+            // Edit → preview or edit → split: pane was hidden; align to shared scroll.
             findState?.activeMode = (mode == .split) ? .edit : .preview
-            let fraction: Double = scrollSyncEnabled
-                ? ScrollBridge.sharedFraction(for: positionSyncID)
-                : ScrollBridge.previewFraction(for: positionSyncID)
+            let fraction = ScrollBridge.sharedFraction(for: positionSyncID)
             context.coordinator.scrollFraction = fraction
             Self.applyScrollFraction(to: webView, fraction: fraction, coordinator: context.coordinator)
             if findState?.isVisible == true {
                 context.coordinator.performFind(query: findState?.query ?? "")
             }
+        } else if (mode == .preview || mode == .split),
+                  priorLast == nil || (priorLast == .preview && mode == .split) {
+            // Remounted WKWebView (container swap) or full preview → split: restore from bridge.
+            let fraction = ScrollBridge.sharedFraction(for: positionSyncID)
+            context.coordinator.scrollFraction = fraction
+            Self.applyScrollFraction(to: webView, fraction: fraction, coordinator: context.coordinator)
         }
         // Full preview from split: route find to the preview surface.
-        if mode == .preview, last == .split {
+        if mode == .preview, priorLast == .split {
             findState?.activeMode = .preview
             if findState?.isVisible == true {
                 context.coordinator.performFind(query: findState?.query ?? "")
@@ -100,9 +112,37 @@ struct PreviewView: NSViewRepresentable {
         }
     }
 
+    /// Same formula as injected scroll listener — commits actual WK position before editor reads `ScrollBridge`.
+    private static func snapshotWebScrollFractionToBridge(webView: WKWebView, positionSyncID: String) {
+        let js = """
+        (function() {
+            var el = document.scrollingElement || document.documentElement || document.body;
+            var h = Math.max(el ? el.scrollHeight : 0, document.body ? document.body.scrollHeight : 0);
+            var ms = Math.max(1, h - window.innerHeight);
+            var f = window.scrollY / ms;
+            if (f < 0) f = 0;
+            if (f > 1) f = 1;
+            return f;
+        })();
+        """
+        webView.evaluateJavaScript(js) { result, _ in
+            let f: Double
+            if let n = result as? NSNumber {
+                f = min(max(n.doubleValue, 0), 1)
+            } else {
+                f = ScrollBridge.sharedFraction(for: positionSyncID)
+            }
+            ScrollBridge.setSharedFraction(f, for: positionSyncID, notify: nil)
+        }
+    }
+
     private static func applyScrollFraction(to webView: WKWebView, fraction: Double, coordinator: Coordinator) {
         let clamped = min(max(fraction, 0), 1)
-        coordinator.suppressRelayEcho = true
+        // Echo-suppression is only needed in split (editor-driven programmatic scroll ↔ WK feedback).
+        // In full preview, blocking echoes can drop real user scrolls so ScrollBridge never updates → editor restores a stale fraction (often ~1).
+        if coordinator.mode == .split {
+            coordinator.scrollEchoDeadUntil = CACurrentMediaTime() + 0.22
+        }
         let js = """
         (function() {
             var el = document.scrollingElement || document.documentElement || document.body;
@@ -111,15 +151,11 @@ struct PreviewView: NSViewRepresentable {
             window.scrollTo(0, \(clamped) * ms);
         })();
         """
-        webView.evaluateJavaScript(js) { _, _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
-                coordinator.suppressRelayEcho = false
-            }
-        }
+        webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     static func dismantleNSView(_ webView: WKWebView, coordinator: Coordinator) {
-        coordinator.stopScrollBridgeObserver()
+        coordinator.webView = nil
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "linkClicked")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "scrollSync")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "copyToClipboard", contentWorld: Self.copyButtonContentWorld)
@@ -133,19 +169,25 @@ struct PreviewView: NSViewRepresentable {
         function clearlyMaxScroll() {
             var el = document.scrollingElement || document.documentElement || document.body;
             var h = Math.max(el ? el.scrollHeight : 0, document.body ? document.body.scrollHeight : 0);
-            return Math.max(1, h - window.innerHeight);
+            var ih = window.innerHeight || 0;
+            return Math.max(1, h - ih);
         }
         var _scrollTicking = false;
         window.addEventListener('scroll', function() {
             if (_scrollTicking) return;
             _scrollTicking = true;
             requestAnimationFrame(function() {
-                var maxScroll = clearlyMaxScroll();
-                var fraction = window.scrollY / maxScroll;
-                if (fraction < 0) fraction = 0;
-                if (fraction > 1) fraction = 1;
-                window.webkit.messageHandlers.scrollSync.postMessage({ fraction: fraction });
-                _scrollTicking = false;
+                requestAnimationFrame(function() {
+                    var ih = window.innerHeight || 0;
+                    var maxScroll = clearlyMaxScroll();
+                    var sy = window.scrollY;
+                    if (ih < 8 || maxScroll < 2) {
+                        _scrollTicking = false;
+                        return;
+                    }
+                    window.webkit.messageHandlers.scrollSync.postMessage({ scrollY: sy, maxScroll: maxScroll });
+                    _scrollTicking = false;
+                });
             });
         });
         """
@@ -209,44 +251,15 @@ struct PreviewView: NSViewRepresentable {
         var didInitialLoad = false
         var fileURL: URL?
         var positionSyncID = ""
-        var scrollSyncEnabled = true
         var mode: ViewMode = .edit
-        /// Ignore scroll events caused by programmatic preview scroll (split sync).
-        var suppressRelayEcho = false
-        private var scrollBridgeObserver: NSObjectProtocol?
+        /// Drop WK `scrollSync` messages until this time (programmatic scroll echoes).
+        var scrollEchoDeadUntil: TimeInterval = 0
         var findState: FindState?
         var outlineState: OutlineState?
         weak var webView: WKWebView?
         private var findCancellables = Set<AnyCancellable>()
         private var matchCount = 0
         private var currentMatchIdx = 0
-
-        func startScrollBridgeObserver() {
-            stopScrollBridgeObserver()
-            scrollBridgeObserver = NotificationCenter.default.addObserver(
-                forName: .clearlySharedScrollFractionChanged,
-                object: nil,
-                queue: .main
-            ) { [weak self] note in
-                guard let self else { return }
-                guard let id = note.userInfo?["id"] as? String, id == self.positionSyncID else { return }
-                guard let raw = note.userInfo?["source"] as? Int,
-                      let source = ScrollFractionSource(rawValue: raw) else { return }
-                guard source == .editor || source == .align else { return }
-                guard self.scrollSyncEnabled, self.mode == .split else { return }
-                guard let f = note.userInfo?["fraction"] as? Double else { return }
-                guard let webView = self.webView else { return }
-                self.scrollFraction = f
-                PreviewView.applyScrollFraction(to: webView, fraction: f, coordinator: self)
-            }
-        }
-
-        func stopScrollBridgeObserver() {
-            if let scrollBridgeObserver {
-                NotificationCenter.default.removeObserver(scrollBridgeObserver)
-                self.scrollBridgeObserver = nil
-            }
-        }
 
         func observeFindState(_ state: FindState, webView: WKWebView) {
             self.webView = webView
@@ -278,6 +291,7 @@ struct PreviewView: NSViewRepresentable {
         }
 
         func scrollToHeading(anchor: PreviewSourceAnchor) {
+            guard let webView = self.webView else { return }
             let js = """
             (function() {
                 var headings = document.querySelectorAll('h1,h2,h3,h4,h5,h6');
@@ -296,11 +310,11 @@ struct PreviewView: NSViewRepresentable {
                 }
             })();
             """
-            webView?.evaluateJavaScript(js)
+            webView.evaluateJavaScript(js)
         }
 
         func performFind(query: String) {
-            guard let webView, didInitialLoad else { return }
+            guard let webView = self.webView, didInitialLoad else { return }
             guard !query.isEmpty else {
                 clearFindHighlights()
                 return
@@ -378,6 +392,7 @@ struct PreviewView: NSViewRepresentable {
         }
 
         private func navigateToMatch(_ index: Int) {
+            guard let webView = self.webView else { return }
             let js = """
             (function() {
                 var marks = document.querySelectorAll('mark.clearly-find');
@@ -388,7 +403,7 @@ struct PreviewView: NSViewRepresentable {
                 }
             })();
             """
-            webView?.evaluateJavaScript(js)
+            webView.evaluateJavaScript(js)
             DispatchQueue.main.async { [weak self] in
                 guard self?.findState?.activeMode == .preview else { return }
                 self?.findState?.currentIndex = index + 1
@@ -396,6 +411,7 @@ struct PreviewView: NSViewRepresentable {
         }
 
         private func clearFindHighlights() {
+            guard let webView = self.webView else { return }
             let js = """
             (function() {
                 document.querySelectorAll('mark.clearly-find').forEach(function(m) {
@@ -405,7 +421,7 @@ struct PreviewView: NSViewRepresentable {
                 });
             })();
             """
-            webView?.evaluateJavaScript(js)
+            webView.evaluateJavaScript(js)
             matchCount = 0
             currentMatchIdx = 0
             DispatchQueue.main.async { [weak self] in
@@ -416,10 +432,11 @@ struct PreviewView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            guard let coordinatorWebView = self.webView else { return }
             if !didInitialLoad {
                 didInitialLoad = true
             }
-            webView.alphaValue = 1
+            coordinatorWebView.alphaValue = 1
             // Restore scroll position after HTML reload (stable max scroll)
             if scrollFraction > 0.001 {
                 let c = min(max(scrollFraction, 0), 1)
@@ -431,7 +448,7 @@ struct PreviewView: NSViewRepresentable {
                     window.scrollTo(0, \(c) * ms);
                 })();
                 """
-                webView.evaluateJavaScript(js)
+                coordinatorWebView.evaluateJavaScript(js)
             }
             // Re-apply find highlights after page reload
             if let query = findState?.query,
@@ -474,23 +491,22 @@ struct PreviewView: NSViewRepresentable {
             }
 
             guard message.name == "scrollSync",
-                  let body = message.body as? [String: Any],
-                  let fraction = (body["fraction"] as? NSNumber)?.doubleValue else { return }
+                  let body = message.body as? [String: Any] else { return }
 
-            guard !suppressRelayEcho else { return }
-
-            let f = min(max(fraction, 0), 1)
-            scrollFraction = f
-
-            if scrollSyncEnabled {
-                if mode == .split {
-                    ScrollBridge.publishSharedFraction(f, for: positionSyncID, source: .preview)
-                } else {
-                    ScrollBridge.setSharedFraction(f, for: positionSyncID)
-                }
+            let echoBlocked = self.mode == .split && CACurrentMediaTime() < scrollEchoDeadUntil
+            let f: Double
+            if let sy = body["scrollY"] as? NSNumber, let ms = body["maxScroll"] as? NSNumber {
+                let maxScroll = max(1.0, ms.doubleValue)
+                f = min(max(sy.doubleValue / maxScroll, 0), 1)
+            } else if let legacy = body["fraction"] as? NSNumber {
+                f = min(max(legacy.doubleValue, 0), 1)
             } else {
-                ScrollBridge.setPreviewFraction(f, for: positionSyncID)
+                return
             }
+            if echoBlocked { return }
+
+            scrollFraction = f
+            ScrollBridge.publishSharedFraction(f, for: positionSyncID, source: .preview)
         }
     }
 
